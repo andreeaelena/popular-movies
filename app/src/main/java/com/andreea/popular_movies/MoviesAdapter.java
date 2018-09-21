@@ -6,12 +6,15 @@ import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import com.andreea.popular_movies.model.Movie;
 import com.squareup.picasso.Picasso;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MoviesViewHolder> {
 
-    public MoviesAdapter() {
-    }
+    private List<Movie> mMovieList = new ArrayList<>();
 
     @NonNull
     @Override
@@ -24,15 +27,20 @@ public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MoviesView
 
     @Override
     public void onBindViewHolder(@NonNull MoviesViewHolder holder, int position) {
+        Movie currentMovie = mMovieList.get(position);
         Picasso.get()
-                .load("")
+                .load(currentMovie.computeFinalUrl())
                 .into(holder.mMoviePoster);
 
     }
 
     @Override
     public int getItemCount() {
-        return 0;
+        return mMovieList.size();
+    }
+
+    public void setMoviesData(List<Movie> movieList) {
+        mMovieList.addAll(movieList);
     }
 
     public static class MoviesViewHolder extends RecyclerView.ViewHolder {
