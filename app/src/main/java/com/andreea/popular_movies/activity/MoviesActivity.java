@@ -1,4 +1,4 @@
-package com.andreea.popular_movies;
+package com.andreea.popular_movies.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -13,6 +13,10 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.andreea.popular_movies.BuildConfig;
+import com.andreea.popular_movies.OnRecyclerViewItemClickListener;
+import com.andreea.popular_movies.R;
+import com.andreea.popular_movies.adapter.MoviesAdapter;
 import com.andreea.popular_movies.model.Movie;
 import com.andreea.popular_movies.model.PopularMoviesResponse;
 import com.andreea.popular_movies.network.PopularMovies;
@@ -30,6 +34,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class MoviesActivity extends AppCompatActivity {
+    public static final String EXTRA_MOVIE_ID = "movie_id";
     private static final int NUMBER_OF_COLUMNS = 2;
 
     @BindView(R.id.movies_grid) RecyclerView mMoviesGrid;
@@ -50,18 +55,11 @@ public class MoviesActivity extends AppCompatActivity {
         mMoviesGrid.setHasFixedSize(true);
         mMoviesLayoutManager = new GridLayoutManager(this, NUMBER_OF_COLUMNS);
         mMoviesGrid.setLayoutManager(mMoviesLayoutManager);
-        mMoviesAdapter = new MoviesAdapter(new OnRecyclerViewItemClickListener() {
-            @Override
-            public void onClick(View view, int movieId) {
-                Intent detailsActivityIntent = new Intent(MoviesActivity.this, DetailsActivity.class);
-                detailsActivityIntent.putExtra("movie_id", movieId);
-                startActivity(detailsActivityIntent);
-            }
-        });
+        mMoviesAdapter = new MoviesAdapter(new OnMovieGridItemClickListener());
         mMoviesGrid.setAdapter(mMoviesAdapter);
 
         PopularMovies popularMovies = RetrofitClientInstance.getInstance().create(PopularMovies.class);
-        Call<PopularMoviesResponse> popularMoviesCall = popularMovies.getPopularMovies(RetrofitClientInstance.API_KEY);
+        Call<PopularMoviesResponse> popularMoviesCall = popularMovies.getPopularMovies(BuildConfig.THE_MOVIE_DB_API_KEY);
         popularMoviesCall.enqueue(new Callback<PopularMoviesResponse>() {
             @Override
             public void onResponse(Call<PopularMoviesResponse> call, Response<PopularMoviesResponse> response) {
@@ -74,6 +72,7 @@ public class MoviesActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<PopularMoviesResponse> call, Throwable t) {
+                // TODO: display error message to the user
             }
         });
     }
@@ -145,9 +144,6 @@ public class MoviesActivity extends AppCompatActivity {
         Collections.sort(movieList, new Comparator<Movie>() {
             @Override
             public int compare(Movie movie1, Movie movie2) {
-                // -1 => movie1 < movie2
-                // 0 => movie1 == movie2
-                // 1 => movie1 > movie2
                 if (movie1.getVoteAverage() < movie2.getVoteAverage()) {
                     return 1;
                 } else if (movie1.getVoteAverage() > movie2.getVoteAverage()) {
@@ -158,6 +154,15 @@ public class MoviesActivity extends AppCompatActivity {
             }
         });
         return movieList;
+    }
+
+    class OnMovieGridItemClickListener implements OnRecyclerViewItemClickListener {
+        @Override
+        public void onClick(View view, int movieId) {
+            Intent detailsActivityIntent = new Intent(MoviesActivity.this, DetailsActivity.class);
+            detailsActivityIntent.putExtra(EXTRA_MOVIE_ID, movieId);
+            startActivity(detailsActivityIntent);
+        }
     }
 }
 

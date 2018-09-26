@@ -1,7 +1,9 @@
-package com.andreea.popular_movies;
+package com.andreea.popular_movies.activity;
 
 import android.app.Activity;
 import android.os.Bundle;
+
+import com.andreea.popular_movies.R;
 
 import butterknife.ButterKnife;
 
