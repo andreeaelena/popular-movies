@@ -1,7 +1,5 @@
 package com.andreea.popular_movies.model;
 
-import com.andreea.popular_movies.network.GetPopularMovies;
-import com.andreea.popular_movies.network.RetrofitClientInstance;
 import com.google.gson.annotations.SerializedName;
 
 public class Movie {
