@@ -1,4 +1,4 @@
-package com.andreea.popular_movies;
+package com.andreea.popular_movies.callback;
 
 import android.view.View;
 

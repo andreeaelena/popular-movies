@@ -2,9 +2,9 @@
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
     tools:context=".activity.MoviesActivity">
 
     <android.support.v7.widget.Toolbar
@@ -12,10 +12,16 @@
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:background="?attr/colorPrimary"
-        app:title="Popular Movies"
-        android:elevation="4dp"
-        android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
-        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>
+        android:elevation="@dimen/toolbar_elevation"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+        app:title="@string/app_name"/>
+
+    <ProgressBar
+        android:id="@+id/loading_view"
+        android:layout_width="@dimen/loading_view_width_height"
+        android:layout_height="@dimen/loading_view_width_height"
+        android:layout_centerInParent="true"/>
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/movies_grid"
@@ -23,8 +29,32 @@
         android:layout_height="match_parent"
         android:scrollbars="vertical"
         android:layout_below="@+id/movies_toolbar"
-        >
+        android:visibility="gone"/>
 
-    </android.support.v7.widget.RecyclerView>
+    <LinearLayout
+        android:id="@+id/error_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layout_below="@id/movies_toolbar"
+        android:padding="@dimen/grid_error_view_padding"
+        android:gravity="center"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/grid_error_label_margin_bottom"
+            android:gravity="center"
+            android:textSize="@dimen/grid_error_label_text_size"
+            android:text="@string/error_message"/>
+
+        <Button
+            android:id="@+id/retry_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/retry"/>
+
+    </LinearLayout>
 
 </RelativeLayout>

@@ -7,7 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
-import com.andreea.popular_movies.OnRecyclerViewItemClickListener;
+import com.andreea.popular_movies.callback.OnRecyclerViewItemClickListener;
 import com.andreea.popular_movies.R;
 import com.andreea.popular_movies.model.Movie;
 import com.squareup.picasso.Picasso;
@@ -31,14 +31,14 @@ public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MoviesView
     @NonNull
     @Override
     public MoviesViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        ImageView moviePoster = (ImageView) LayoutInflater.from(parent.getContext())
+        View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.movie_item, parent, false);
-        MoviesViewHolder vh = new MoviesViewHolder(moviePoster);
-        return vh;
+        MoviesViewHolder viewHolder = new MoviesViewHolder(view);
+        return viewHolder;
     }
 
     @Override
-    public void onBindViewHolder(@NonNull MoviesViewHolder holder, int position) {
+    public void onBindViewHolder(final @NonNull MoviesViewHolder holder, int position) {
         Movie currentMovie = mMovieList.get(position);
         View view = holder.mMoviePoster;
 
@@ -47,9 +47,8 @@ public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MoviesView
 
         // Download the image using Picasso
         Picasso.get()
-                .load(currentMovie.computeFinalUrl())
+                .load(currentMovie.computeFinalPosterUrl())
                 .into(holder.mMoviePoster);
-
     }
 
     @Override
@@ -57,20 +56,29 @@ public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MoviesView
         return mMovieList.size();
     }
 
+    /**
+     * Sets a movie list that should be displayed inside the RecyclerView.
+     */
     public void setMoviesData(List<Movie> movieList) {
         mMovieList.clear();
         mMovieList.addAll(movieList);
     }
 
+    /**
+     * ViewHolder class that holds a reference to the poster ImageView.
+     */
     static class MoviesViewHolder extends RecyclerView.ViewHolder {
         private ImageView mMoviePoster;
 
-        MoviesViewHolder(ImageView moviePoster) {
-            super(moviePoster);
-            mMoviePoster = moviePoster;
+        MoviesViewHolder(View view) {
+            super(view);
+            mMoviePoster = view.findViewById(R.id.movie_poster);
         }
     }
 
+    /**
+     * Class that implements View.OnClickListener and is used to listen for item click events.
+     */
     class OnItemClickListener implements View.OnClickListener {
         private OnRecyclerViewItemClickListener mOnItemClickListener;
         private Movie mMovieData;
@@ -82,6 +90,7 @@ public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MoviesView
 
         @Override
         public void onClick(View view) {
+            // On click we forward the event to the OnRecyclerViewItemClickListener instance
             mOnItemClickListener.onClick(view, mMovieData.getId());
         }
     }

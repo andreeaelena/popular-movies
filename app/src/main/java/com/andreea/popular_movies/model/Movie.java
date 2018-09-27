@@ -7,7 +7,8 @@ import java.util.List;
 public class Movie {
 
     private static final String IMAGE_BASE_URL = "http://image.tmdb.org/t/p/";
-    private static final String IMAGE_SIZE = "w185";
+    private static final String IMAGE_SIZE = "w780";
+    private static final String BACKDROP_SIZE = "w1280";
 
     @SerializedName("id")
     private Integer id;
@@ -180,11 +181,25 @@ public class Movie {
         this.genreIDs = genreIDs;
     }
 
-    public String computeFinalUrl() {
+    /**
+     * Computes the final poster URL based on the base URL, the image size and the poster path
+     */
+    public String computeFinalPosterUrl() {
         StringBuilder sb = new StringBuilder()
                 .append(IMAGE_BASE_URL)
                 .append(IMAGE_SIZE)
                 .append(posterPath);
+        return sb.toString();
+    }
+
+    /**
+     * Computes the final poster URL based on the base URL, the image size and the poster path
+     */
+    public String computeFinalBackdropUrl() {
+        StringBuilder sb = new StringBuilder()
+                .append(IMAGE_BASE_URL)
+                .append(BACKDROP_SIZE)
+                .append(backdropPath);
         return sb.toString();
     }
 }
