@@ -58,23 +58,10 @@ public class MoviesActivity extends AppCompatActivity {
         mMoviesAdapter = new MoviesAdapter(new OnMovieGridItemClickListener());
         mMoviesGrid.setAdapter(mMoviesAdapter);
 
+        // Make the request to the /movie/popular endpoint
         PopularMovies popularMovies = RetrofitClientInstance.getInstance().create(PopularMovies.class);
         Call<PopularMoviesResponse> popularMoviesCall = popularMovies.getPopularMovies(BuildConfig.THE_MOVIE_DB_API_KEY);
-        popularMoviesCall.enqueue(new Callback<PopularMoviesResponse>() {
-            @Override
-            public void onResponse(Call<PopularMoviesResponse> call, Response<PopularMoviesResponse> response) {
-                mPopularMoviesResponse = response.body();
-                if (mPopularMoviesResponse != null) {
-                    mMoviesAdapter.setMoviesData(mPopularMoviesResponse.getResults());
-                    mMoviesAdapter.notifyDataSetChanged();
-                }
-            }
-
-            @Override
-            public void onFailure(Call<PopularMoviesResponse> call, Throwable t) {
-                // TODO: display error message to the user
-            }
-        });
+        popularMoviesCall.enqueue(new PopularMoviesRequestCallback());
     }
 
     @Override
@@ -88,15 +75,16 @@ public class MoviesActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.sort:
-                showPopup(mToolbar);
+                showSortMenu();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
     }
 
-    private void showPopup(View view) {
-        PopupMenu popup = new PopupMenu(this, view, Gravity.RIGHT);
+    private void showSortMenu() {
+        PopupMenu popup = new PopupMenu(this, mToolbar, Gravity.END);
+        popup.inflate(R.menu.sort_menu);
         popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
@@ -116,7 +104,7 @@ public class MoviesActivity extends AppCompatActivity {
                 }
             }
         });
-        popup.inflate(R.menu.sort_menu);
+        // Set the checked state of the items
         popup.getMenu().getItem(sortMenuSelectedItemIndex).setChecked(true);
         popup.show();
     }
@@ -154,6 +142,21 @@ public class MoviesActivity extends AppCompatActivity {
             }
         });
         return movieList;
+    }
+
+    class PopularMoviesRequestCallback implements Callback<PopularMoviesResponse> {
+        @Override
+        public void onResponse(Call<PopularMoviesResponse> call, Response<PopularMoviesResponse> response) {
+            mPopularMoviesResponse = response.body();
+            if (mPopularMoviesResponse != null) {
+                mMoviesAdapter.setMoviesData(mPopularMoviesResponse.getResults());
+                mMoviesAdapter.notifyDataSetChanged();
+            }
+        }
+        @Override
+        public void onFailure(Call<PopularMoviesResponse> call, Throwable t) {
+            // TODO: display error message to the user
+        }
     }
 
     class OnMovieGridItemClickListener implements OnRecyclerViewItemClickListener {
