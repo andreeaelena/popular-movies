@@ -17,6 +17,7 @@
         android:layout_height="wrap_content"
         android:layout_toEndOf="@id/loading_view"
         android:layout_centerVertical="true"
+        android:textColor="@color/white"
         android:textSize="@dimen/grid_loading_label_text_size"
         android:textStyle="bold"
         android:text="@string/loading"/>

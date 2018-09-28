@@ -18,12 +18,9 @@ import com.andreea.popular_movies.callback.OnRecyclerViewItemClickListener;
 import com.andreea.popular_movies.R;
 import com.andreea.popular_movies.adapter.MoviesAdapter;
 import com.andreea.popular_movies.cache.DataCache;
-import com.andreea.popular_movies.callback.PopularMoviesCallback;
+import com.andreea.popular_movies.callback.MoviesCallback;
 import com.andreea.popular_movies.model.Movie;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 import butterknife.BindView;
@@ -31,6 +28,7 @@ import butterknife.ButterKnife;
 
 public class MoviesActivity extends AppCompatActivity {
     public static final String EXTRA_MOVIE_ID = "movie_id";
+    private static final String SORT_MENU_SELECTED_ITEM_INDEX = "sort_menu_selected_item_index";
 
     @BindView(R.id.loading_view) View mLoadingView;
     @BindView(R.id.movies_grid) RecyclerView mMoviesGrid;
@@ -41,8 +39,8 @@ public class MoviesActivity extends AppCompatActivity {
     private MoviesAdapter mMoviesAdapter;
     private GridLayoutManager mMoviesLayoutManager;
 
-    private List<Movie> mMovieList;
-    private int mSortMenuSelectedItemIndex = 0;
+    private DataCache.SortBy mSortBy;
+    private int mSortMenuSelectedItemIndex;
     private boolean mIsLoading = false;
 
     @Override
@@ -75,18 +73,39 @@ public class MoviesActivity extends AppCompatActivity {
         mMoviesGrid.setAdapter(mMoviesAdapter);
         mMoviesGrid.addOnScrollListener(new OnMovieGridScrollListener());
 
-        // Re-trigger the popular movies request when the error view Retry button is clicked
+        // Re-trigger the movies request when the error view Retry button is clicked
         mRetryButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 mErrorView.setVisibility(View.GONE);
                 mLoadingView.setVisibility(View.VISIBLE);
-                loadData(false);
+                loadData(true, false);
             }
         });
 
-        // Get the popular movies data that needs to be displayed inside the mMoviesGrid RecyclerView
-        loadData(false);
+        // Set tha sort item selected index based on the saved instance state
+        mSortMenuSelectedItemIndex = savedInstanceState != null
+                ? savedInstanceState.getInt(SORT_MENU_SELECTED_ITEM_INDEX)
+                : 0;
+
+        switch (mSortMenuSelectedItemIndex) {
+            case 0:
+                mSortBy = DataCache.SortBy.MOST_POPULAR;
+                break;
+            case 1:
+                mSortBy = DataCache.SortBy.TOP_RATED;
+                break;
+        }
+
+        // Get the movies data that needs to be displayed inside the mMoviesGrid RecyclerView
+        loadData(false, false);
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putInt(SORT_MENU_SELECTED_ITEM_INDEX, mSortMenuSelectedItemIndex);
+        outState.putInt("", mSortBy.ordinal());
+        super.onSaveInstanceState(outState);
     }
 
     @Override
@@ -108,13 +127,14 @@ public class MoviesActivity extends AppCompatActivity {
     }
 
     /**
-     * Load the Popular Movies data
+     * Load the Movies data
      * @param forced Force a network request
      */
-    private void loadData(boolean forced) {
+    private void loadData(boolean forced, boolean changeSortOrder) {
         mIsLoading = true;
-        int page = DataCache.getInstance().getCurrentPage() + 1;
-        DataCache.getInstance().getPopularMovies(page, forced, new OnPopularMoviesCallback());
+        // If the sort order was just changed, set the page to 1
+        int page = changeSortOrder ? 1 : DataCache.getInstance().getCurrentPage() + 1;
+        DataCache.getInstance().getMovies(mSortBy, page, forced, new OnMoviesCallback());
     }
 
     /**
@@ -131,11 +151,13 @@ public class MoviesActivity extends AppCompatActivity {
                 switch (item.getItemId()) {
                     case R.id.most_popular:
                         mSortMenuSelectedItemIndex = 0;
-                        showMostPopular();
+                        mSortBy = DataCache.SortBy.MOST_POPULAR;
+                        loadData(true, true);
                         return true;
                     case R.id.top_rated:
                         mSortMenuSelectedItemIndex = 1;
-                        showTopRated();
+                        mSortBy = DataCache.SortBy.TOP_RATED;
+                        loadData(true, true);
                         return true;
                     default:
                         return false;
@@ -148,81 +170,19 @@ public class MoviesActivity extends AppCompatActivity {
     }
 
     /**
-     * Display the movie list by most popular.
-     */
-    private void showMostPopular() {
-        List<Movie> sortedMovieList = sortMoviesByMostPopular();
-        mMoviesAdapter.setMoviesData(sortedMovieList);
-        mMoviesAdapter.notifyDataSetChanged();
-    }
-
-    /**
-     * Display the movie list by top rated
-     */
-    private void showTopRated() {
-        List<Movie> sortedMovieList = sortMoviesByTopRated();
-        mMoviesAdapter.setMoviesData(sortedMovieList);
-        mMoviesAdapter.notifyDataSetChanged();
-    }
-
-    /**
-     * Sorts the movies by most popular, i.e. by the 'popularity' field.
-     * @return the sorted movie list
-     */
-    private List<Movie> sortMoviesByMostPopular() {
-        List<Movie> movieList = new ArrayList<>(mMovieList);
-        Collections.sort(movieList, new Comparator<Movie>() {
-            @Override
-            public int compare(Movie movie1, Movie movie2) {
-                if (movie1.getPopularity() < movie2.getPopularity()) {
-                    return 1;
-                } else if (movie1.getPopularity() > movie2.getPopularity()) {
-                    return -1;
-                } else {
-                    return 0;
-                }
-            }
-        });
-        return movieList;
-    }
-
-    /**
-     * Sorts the movies by top rated, i.e. by the 'voteAverage' field.
-     * @return the sorted movie list
-     */
-    private List<Movie> sortMoviesByTopRated() {
-        List<Movie> movieList = new ArrayList<>(mMovieList);
-        Collections.sort(movieList, new Comparator<Movie>() {
-            @Override
-            public int compare(Movie movie1, Movie movie2) {
-                if (movie1.getVoteAverage() < movie2.getVoteAverage()) {
-                    return 1;
-                } else if (movie1.getVoteAverage() > movie2.getVoteAverage()) {
-                    return -1;
-                } else {
-                    return 0;
-                }
-            }
-        });
-        return movieList;
-    }
-
-    /**
-     * Class that implements PopularMoviesCallback and is used to return the popular movies data
+     * Class that implements MoviesCallback and is used to return the movies data
      * from the DataCache.
      */
-    class OnPopularMoviesCallback implements PopularMoviesCallback {
+    class OnMoviesCallback implements MoviesCallback {
         @Override
         public void onMoviesResponse(List<Movie> movieList) {
             mIsLoading = false;
             mLoadingView.setVisibility(View.GONE);
 
             if (movieList.size() > 0) {
-                mMovieList = movieList;
-
                 mMoviesGrid.setVisibility(View.VISIBLE);
                 // Set the received data on the Adapter and notify it
-                mMoviesAdapter.setMoviesData(mMovieList);
+                mMoviesAdapter.setMoviesData(movieList);
                 mMoviesAdapter.notifyDataSetChanged();
             } else {
                 mErrorView.setVisibility(View.VISIBLE);
@@ -269,7 +229,7 @@ public class MoviesActivity extends AppCompatActivity {
                     && firstVisibleItemPosition >= 0;
 
             if (shouldLoadNextPage) {
-                loadData(true);
+                loadData(true, false);
             }
         }
     }

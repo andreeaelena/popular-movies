@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * Interface used to create callbacks for returning the popular movies response
  */
-public interface PopularMoviesCallback {
+public interface MoviesCallback {
 
     void onMoviesResponse(List<Movie> movieList);
 

@@ -6,7 +6,7 @@ import retrofit2.Call;
 import retrofit2.http.GET;
 import retrofit2.http.Query;
 
-public interface PopularMovies {
-    @GET("/3/movie/popular")
-    Call<MoviesResponse> getPopularMovies(@Query("page") int page, @Query("api_key") String apiKey);
+public interface TopRatedMovies {
+    @GET("/3/movie/top_rated")
+    Call<MoviesResponse> getTopRatedMovies(@Query("page") int page, @Query("api_key") String apiKey);
 }
