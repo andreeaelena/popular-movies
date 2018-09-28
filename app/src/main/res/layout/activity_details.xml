@@ -2,6 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/dark_background"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <android.support.v7.widget.Toolbar
@@ -15,7 +16,7 @@
         app:navigationIcon="?attr/homeAsUpIndicator"/>
 
     <ScrollView
-        android:id="@+id/detail_scroll"
+        android:id="@+id/detail_scroll_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
@@ -54,19 +55,17 @@
                         android:layout_weight="1">
 
                         <TextView
+                            style="@style/DetailMovieTextLabel"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginBottom="3dp"
-                            android:textSize="@dimen/detail_label_text_size"
                             android:text="@string/title"/>
 
                         <TextView
+                            style="@style/DetailMovieTextValue"
                             android:id="@+id/movie_title"
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:textSize="@dimen/detail_value_text_size"
-                            android:textStyle="bold"
-                            android:textColor="@color/black"/>
+                            android:layout_height="wrap_content"/>
 
                     </LinearLayout>
 
@@ -77,19 +76,17 @@
                         android:layout_weight="1">
 
                         <TextView
+                            style="@style/DetailMovieTextLabel"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginBottom="3dp"
-                            android:textSize="@dimen/detail_label_text_size"
                             android:text="@string/rating"/>
 
                         <TextView
+                            style="@style/DetailMovieTextValue"
                             android:id="@+id/movie_rating"
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:textSize="@dimen/detail_value_text_size"
-                            android:textStyle="bold"
-                            android:textColor="@color/black"/>
+                            android:layout_height="wrap_content"/>
 
                     </LinearLayout>
 
@@ -100,19 +97,17 @@
                         android:layout_weight="1">
 
                         <TextView
+                            style="@style/DetailMovieTextLabel"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginBottom="3dp"
-                            android:textSize="@dimen/detail_label_text_size"
                             android:text="@string/release_date"/>
 
                         <TextView
+                            style="@style/DetailMovieTextValue"
                             android:id="@+id/movie_release_date"
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:textSize="@dimen/detail_value_text_size"
-                            android:textStyle="bold"
-                            android:textColor="@color/black"/>
+                            android:layout_height="wrap_content"/>
 
                     </LinearLayout>
 
@@ -128,7 +123,7 @@
                 android:paddingRight="@dimen/detail_content_padding"
                 android:paddingBottom="@dimen/detail_content_padding"
                 android:textSize="@dimen/detail_overview_text_size"
-                android:textColor="@color/black"/>
+                android:textColor="@color/detail_text_color"/>
 
         </LinearLayout>
 

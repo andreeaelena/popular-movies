@@ -5,6 +5,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.andreea.popular_movies.R;
@@ -18,6 +20,7 @@ import butterknife.ButterKnife;
 public class DetailsActivity extends AppCompatActivity {
 
     @BindView(R.id.detail_toolbar) Toolbar mToolbar;
+    @BindView(R.id.detail_scroll_view) ScrollView mScrollView;
     @BindView(R.id.movie_backdrop) ImageView mMovieBackdrop;
     @BindView(R.id.movie_poster) ImageView mMoviePosterView;
     @BindView(R.id.movie_title) TextView mMovieTitleView;
@@ -38,11 +41,18 @@ public class DetailsActivity extends AppCompatActivity {
         if (movie != null) {
             setTitle(movie.getTitle());
 
-            if (movie.getBackdropPath() != null) {
+            boolean hasMovieBackdrop = movie.getBackdropPath() != null;
+            if (hasMovieBackdrop) {
                 // Download the backdrop image using Picasso
                 Picasso.get()
                         .load(movie.computeFinalBackdropUrl())
                         .into(mMovieBackdrop);
+            } else {
+                // In case the backdropPath is null move the ScrollView below the toolbar and set
+                // its background to the primaryColor.
+                mToolbar.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
+                RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) mScrollView.getLayoutParams();
+                params.addRule(RelativeLayout.BELOW, R.id.detail_toolbar);
             }
 
             // Download the poster image using Picasso
