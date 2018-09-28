@@ -20,7 +20,6 @@ import com.andreea.popular_movies.adapter.MoviesAdapter;
 import com.andreea.popular_movies.cache.DataCache;
 import com.andreea.popular_movies.callback.PopularMoviesCallback;
 import com.andreea.popular_movies.model.Movie;
-import com.andreea.popular_movies.model.PopularMoviesResponse;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -40,9 +39,11 @@ public class MoviesActivity extends AppCompatActivity {
     @BindView(R.id.movies_toolbar) Toolbar mToolbar;
 
     private MoviesAdapter mMoviesAdapter;
-    private RecyclerView.LayoutManager mMoviesLayoutManager;
-    private PopularMoviesResponse mPopularMoviesResponse;
-    private int sortMenuSelectedItemIndex = 0;
+    private GridLayoutManager mMoviesLayoutManager;
+
+    private List<Movie> mMovieList;
+    private int mSortMenuSelectedItemIndex = 0;
+    private boolean mIsLoading = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,11 +54,26 @@ public class MoviesActivity extends AppCompatActivity {
 
         int numberOfColumns = getResources().getInteger(R.integer.grid_columns_count);
 
-        mMoviesGrid.setHasFixedSize(true);
-        mMoviesLayoutManager = new GridLayoutManager(this, numberOfColumns);
-        mMoviesGrid.setLayoutManager(mMoviesLayoutManager);
         mMoviesAdapter = new MoviesAdapter(new OnMovieGridItemClickListener());
+        mMoviesLayoutManager = new GridLayoutManager(this, numberOfColumns);
+        mMoviesLayoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
+            @Override
+            public int getSpanSize(int position) {
+                // The loading view is two columns wide, so we need to set the span to 2
+                switch (mMoviesAdapter.getItemViewType(position)) {
+                    case MoviesAdapter.ITEM_TYPE_MOVIE:
+                        return 1;
+                    case MoviesAdapter.ITEM_TYPE_LOADING:
+                        return 2;
+                }
+                return 0;
+            }
+        });
+
+        mMoviesGrid.setHasFixedSize(true);
+        mMoviesGrid.setLayoutManager(mMoviesLayoutManager);
         mMoviesGrid.setAdapter(mMoviesAdapter);
+        mMoviesGrid.addOnScrollListener(new OnMovieGridScrollListener());
 
         // Re-trigger the popular movies request when the error view Retry button is clicked
         mRetryButton.setOnClickListener(new View.OnClickListener() {
@@ -65,12 +81,12 @@ public class MoviesActivity extends AppCompatActivity {
             public void onClick(View v) {
                 mErrorView.setVisibility(View.GONE);
                 mLoadingView.setVisibility(View.VISIBLE);
-                DataCache.getInstance().getPopularMovies(new OnPopularMoviesCallback());
+                loadData(false);
             }
         });
 
         // Get the popular movies data that needs to be displayed inside the mMoviesGrid RecyclerView
-        DataCache.getInstance().getPopularMovies(new OnPopularMoviesCallback());
+        loadData(false);
     }
 
     @Override
@@ -92,6 +108,16 @@ public class MoviesActivity extends AppCompatActivity {
     }
 
     /**
+     * Load the Popular Movies data
+     * @param forced Force a network request
+     */
+    private void loadData(boolean forced) {
+        mIsLoading = true;
+        int page = DataCache.getInstance().getCurrentPage() + 1;
+        DataCache.getInstance().getPopularMovies(page, forced, new OnPopularMoviesCallback());
+    }
+
+    /**
      * Display the sort type popup menu.
      */
     private void showSortMenu() {
@@ -104,11 +130,11 @@ public class MoviesActivity extends AppCompatActivity {
 
                 switch (item.getItemId()) {
                     case R.id.most_popular:
-                        sortMenuSelectedItemIndex = 0;
+                        mSortMenuSelectedItemIndex = 0;
                         showMostPopular();
                         return true;
                     case R.id.top_rated:
-                        sortMenuSelectedItemIndex = 1;
+                        mSortMenuSelectedItemIndex = 1;
                         showTopRated();
                         return true;
                     default:
@@ -117,16 +143,15 @@ public class MoviesActivity extends AppCompatActivity {
             }
         });
         // Set the checked state of the items
-        popup.getMenu().getItem(sortMenuSelectedItemIndex).setChecked(true);
+        popup.getMenu().getItem(mSortMenuSelectedItemIndex).setChecked(true);
         popup.show();
     }
 
     /**
      * Display the movie list by most popular.
-     * NOTE: The list coming from the API is sorted by most popular by default.
      */
     private void showMostPopular() {
-        List<Movie> sortedMovieList = mPopularMoviesResponse.getResults();
+        List<Movie> sortedMovieList = sortMoviesByMostPopular();
         mMoviesAdapter.setMoviesData(sortedMovieList);
         mMoviesAdapter.notifyDataSetChanged();
     }
@@ -141,11 +166,32 @@ public class MoviesActivity extends AppCompatActivity {
     }
 
     /**
-     * Sorts the movies by top rated, i.e. by the voteAverage field.
+     * Sorts the movies by most popular, i.e. by the 'popularity' field.
+     * @return the sorted movie list
+     */
+    private List<Movie> sortMoviesByMostPopular() {
+        List<Movie> movieList = new ArrayList<>(mMovieList);
+        Collections.sort(movieList, new Comparator<Movie>() {
+            @Override
+            public int compare(Movie movie1, Movie movie2) {
+                if (movie1.getPopularity() < movie2.getPopularity()) {
+                    return 1;
+                } else if (movie1.getPopularity() > movie2.getPopularity()) {
+                    return -1;
+                } else {
+                    return 0;
+                }
+            }
+        });
+        return movieList;
+    }
+
+    /**
+     * Sorts the movies by top rated, i.e. by the 'voteAverage' field.
      * @return the sorted movie list
      */
     private List<Movie> sortMoviesByTopRated() {
-        List<Movie> movieList = new ArrayList<>(mPopularMoviesResponse.getResults());
+        List<Movie> movieList = new ArrayList<>(mMovieList);
         Collections.sort(movieList, new Comparator<Movie>() {
             @Override
             public int compare(Movie movie1, Movie movie2) {
@@ -167,15 +213,16 @@ public class MoviesActivity extends AppCompatActivity {
      */
     class OnPopularMoviesCallback implements PopularMoviesCallback {
         @Override
-        public void onMoviesResponse(PopularMoviesResponse moviesResponse) {
-            mPopularMoviesResponse = moviesResponse;
-
+        public void onMoviesResponse(List<Movie> movieList) {
+            mIsLoading = false;
             mLoadingView.setVisibility(View.GONE);
 
-            if (mPopularMoviesResponse != null) {
+            if (movieList.size() > 0) {
+                mMovieList = movieList;
+
                 mMoviesGrid.setVisibility(View.VISIBLE);
                 // Set the received data on the Adapter and notify it
-                mMoviesAdapter.setMoviesData(mPopularMoviesResponse.getResults());
+                mMoviesAdapter.setMoviesData(mMovieList);
                 mMoviesAdapter.notifyDataSetChanged();
             } else {
                 mErrorView.setVisibility(View.VISIBLE);
@@ -184,6 +231,7 @@ public class MoviesActivity extends AppCompatActivity {
 
         @Override
         public void onMoviesFailure(Throwable throwable) {
+            mIsLoading = false;
             mLoadingView.setVisibility(View.GONE);
             mErrorView.setVisibility(View.VISIBLE);
         }
@@ -199,6 +247,30 @@ public class MoviesActivity extends AppCompatActivity {
             Intent detailsActivityIntent = new Intent(MoviesActivity.this, DetailsActivity.class);
             detailsActivityIntent.putExtra(EXTRA_MOVIE_ID, movieId);
             startActivity(detailsActivityIntent);
+        }
+    }
+
+    /**
+     * Class that extends RecyclerView.OnScrollListener and checks if it should load the next
+     * page of movies.
+     */
+    class OnMovieGridScrollListener extends RecyclerView.OnScrollListener {
+        @Override
+        public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+            super.onScrolled(recyclerView, dx, dy);
+
+            int visibleItemCount = mMoviesLayoutManager.getChildCount();
+            int totalItemCount = mMoviesLayoutManager.getItemCount();
+            int firstVisibleItemPosition = mMoviesLayoutManager.findFirstVisibleItemPosition();
+
+            boolean shouldLoadNextPage = !mIsLoading
+                    && !DataCache.getInstance().isLastPage()
+                    && visibleItemCount + firstVisibleItemPosition >= totalItemCount
+                    && firstVisibleItemPosition >= 0;
+
+            if (shouldLoadNextPage) {
+                loadData(true);
+            }
         }
     }
 }

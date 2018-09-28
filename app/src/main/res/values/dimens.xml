@@ -3,6 +3,7 @@
     <dimen name="toolbar_elevation">4dp</dimen>
     <dimen name="loading_view_width_height">80dp</dimen>
     <dimen name="grid_item_padding">8dp</dimen>
+    <dimen name="grid_loading_item_padding">10dp</dimen>
     <dimen name="grid_poster_width">160dp</dimen>
     <dimen name="grid_poster_height">240dp</dimen>
     <dimen name="grid_error_view_padding">16dp</dimen>

@@ -15,7 +15,10 @@ import com.squareup.picasso.Picasso;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MoviesViewHolder> {
+public class MoviesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+
+    public static final int ITEM_TYPE_LOADING = -1;
+    public static final int ITEM_TYPE_MOVIE = 1;
 
     private List<Movie> mMovieList = new ArrayList<>();
     private OnRecyclerViewItemClickListener mOnItemClickListener;
@@ -30,30 +33,45 @@ public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MoviesView
 
     @NonNull
     @Override
-    public MoviesViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.movie_item, parent, false);
-        MoviesViewHolder viewHolder = new MoviesViewHolder(view);
-        return viewHolder;
+    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+        RecyclerView.ViewHolder holder;
+
+        if (viewType == ITEM_TYPE_MOVIE) {
+            View movieView = inflater.inflate(R.layout.movie_item, parent, false);
+            holder = new MovieViewHolder(movieView);
+        } else {
+            View loadingView = inflater.inflate(R.layout.loading_item, parent, false);
+            holder = new LoadingViewHolder(loadingView);
+        }
+        return holder;
     }
 
     @Override
-    public void onBindViewHolder(final @NonNull MoviesViewHolder holder, int position) {
-        Movie currentMovie = mMovieList.get(position);
-        View view = holder.mMoviePoster;
-
-        // Set the click listener on the view
-        view.setOnClickListener(new OnItemClickListener(mOnItemClickListener, currentMovie));
-
-        // Download the image using Picasso
-        Picasso.get()
-                .load(currentMovie.computeFinalPosterUrl())
-                .into(holder.mMoviePoster);
+    public void onBindViewHolder(final @NonNull RecyclerView.ViewHolder holder, int position) {
+        if (getItemViewType(position) == ITEM_TYPE_MOVIE) {
+            Movie currentMovie = mMovieList.get(position);
+            MovieViewHolder movieHolder = (MovieViewHolder) holder;
+            ImageView posterView = movieHolder.mMoviePoster;
+            // Set the click listener on the view
+            posterView.setOnClickListener(new OnItemClickListener(mOnItemClickListener, currentMovie));
+            // Download the image using Picasso
+            Picasso.get()
+                    .load(currentMovie.computeFinalPosterUrl())
+                    .into(posterView);
+        }
     }
 
     @Override
     public int getItemCount() {
-        return mMovieList.size();
+        return mMovieList.size() + 1;
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+        return (position == mMovieList.size())
+                ? ITEM_TYPE_LOADING
+                : ITEM_TYPE_MOVIE;
     }
 
     /**
@@ -67,12 +85,22 @@ public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MoviesView
     /**
      * ViewHolder class that holds a reference to the poster ImageView.
      */
-    static class MoviesViewHolder extends RecyclerView.ViewHolder {
+    static class MovieViewHolder extends RecyclerView.ViewHolder {
         private ImageView mMoviePoster;
 
-        MoviesViewHolder(View view) {
-            super(view);
-            mMoviePoster = view.findViewById(R.id.movie_poster);
+        MovieViewHolder(View itemView) {
+            super(itemView);
+            mMoviePoster = itemView.findViewById(R.id.movie_poster);
+        }
+    }
+
+    /**
+     * ViewHolder class that holds a reference to the loading view used for pagination.
+     */
+    static class LoadingViewHolder extends RecyclerView.ViewHolder {
+
+        LoadingViewHolder(View itemView) {
+            super(itemView);
         }
     }
 
