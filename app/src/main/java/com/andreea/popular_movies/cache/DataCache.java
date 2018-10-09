@@ -4,9 +4,8 @@ import com.andreea.popular_movies.BuildConfig;
 import com.andreea.popular_movies.callback.MoviesCallback;
 import com.andreea.popular_movies.model.Movie;
 import com.andreea.popular_movies.model.MoviesResponse;
-import com.andreea.popular_movies.network.PopularMovies;
+import com.andreea.popular_movies.network.MoviesApi;
 import com.andreea.popular_movies.network.RetrofitClientInstance;
-import com.andreea.popular_movies.network.TopRatedMovies;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -106,14 +105,14 @@ public class DataCache {
 
     private void requestMostPopularMoviesData(int page) {
         // Make the request to the /movie/popular endpoint
-        PopularMovies popularMovies = RetrofitClientInstance.getInstance().create(PopularMovies.class);
-        Call<MoviesResponse> popularMoviesCall = popularMovies.getPopularMovies(page, BuildConfig.THE_MOVIE_DB_API_KEY);
+        MoviesApi moviesApi = RetrofitClientInstance.getInstance().create(MoviesApi.class);
+        Call<MoviesResponse> popularMoviesCall = moviesApi.getPopularMovies(page, BuildConfig.THE_MOVIE_DB_API_KEY);
         popularMoviesCall.enqueue(new RetrofitCallback());
     }
 
     private void requestTopRatedMoviesData(int page) {
         // Make the request to the /movie/top_rated endpoint
-        TopRatedMovies topRatedMovies = RetrofitClientInstance.getInstance().create(TopRatedMovies.class);
+        MoviesApi topRatedMovies = RetrofitClientInstance.getInstance().create(MoviesApi.class);
         Call<MoviesResponse> topRatedMoviesCall = topRatedMovies.getTopRatedMovies(page, BuildConfig.THE_MOVIE_DB_API_KEY);
         topRatedMoviesCall.enqueue(new RetrofitCallback());
     }
