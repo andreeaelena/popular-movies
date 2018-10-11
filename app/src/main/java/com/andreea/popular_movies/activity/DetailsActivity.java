@@ -1,21 +1,36 @@
 package com.andreea.popular_movies.activity;
 
+import android.content.ActivityNotFoundException;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import com.andreea.popular_movies.BuildConfig;
 import com.andreea.popular_movies.R;
+import com.andreea.popular_movies.adapter.MoviesAdapter;
 import com.andreea.popular_movies.cache.DataCache;
 import com.andreea.popular_movies.model.Movie;
+import com.andreea.popular_movies.model.Video;
+import com.andreea.popular_movies.model.VideoResponse;
+import com.andreea.popular_movies.network.MoviesApi;
+import com.andreea.popular_movies.network.RetrofitClientInstance;
 import com.squareup.picasso.Picasso;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class DetailsActivity extends AppCompatActivity {
 
@@ -27,6 +42,8 @@ public class DetailsActivity extends AppCompatActivity {
     @BindView(R.id.movie_rating) TextView mMovieRatingView;
     @BindView(R.id.movie_release_date) TextView mMovieReleaseDateView;
     @BindView(R.id.movie_overview) TextView mMovieOverview;
+    @BindView(R.id.trailers_label) TextView mTrailersLabel;
+    @BindView(R.id.trailers_container) LinearLayout mTrailersContainer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +54,46 @@ public class DetailsActivity extends AppCompatActivity {
 
         int movieId = getIntent().getIntExtra(MoviesActivity.EXTRA_MOVIE_ID, 0);
         Movie movie = DataCache.getInstance().getMovie(movieId);
+
+        MoviesApi moviesApi = RetrofitClientInstance.getInstance().create(MoviesApi.class);
+        Call<VideoResponse> videoResponseCall = moviesApi.getMovieVideos(movieId, BuildConfig.THE_MOVIE_DB_API_KEY);
+        videoResponseCall.enqueue(new Callback<VideoResponse>() {
+            @Override
+            public void onResponse(Call<VideoResponse> call, Response<VideoResponse> response) {
+                final VideoResponse videoResponse = response.body();
+                if (videoResponse != null && videoResponse.getResults().size() > 0) {
+                    LayoutInflater inflater = LayoutInflater.from(DetailsActivity.this);
+
+                    for (int i = 0; i < videoResponse.getResults().size(); i++) {
+                        final Video trailer = videoResponse.getResults().get(i);
+
+                        View trailerLayout = inflater.inflate(R.layout.trailer_layout, null);
+                        View trailerThumbnail = trailerLayout.findViewById(R.id.trailer_thumbnail);
+                        trailerThumbnail.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                Intent appIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube:" + trailer.getKey()));
+                                Intent webIntent = new Intent(Intent.ACTION_VIEW,
+                                        Uri.parse("http://www.youtube.com/watch?v=" + trailer.getKey()));
+                                try {
+                                    startActivity(appIntent);
+                                } catch (ActivityNotFoundException ex) {
+                                    startActivity(webIntent);
+                                }
+                            }
+                        });
+                        TextView trailerName = trailerLayout.findViewById(R.id.trailer_name);
+                        trailerName.setText(trailer.getName());
+                        mTrailersContainer.addView(trailerLayout);
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<VideoResponse> call, Throwable t) {
+
+            }
+        });
 
         if (movie != null) {
             setTitle(movie.getTitle());

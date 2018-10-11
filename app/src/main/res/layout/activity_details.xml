@@ -125,6 +125,22 @@
                 android:textSize="@dimen/detail_overview_text_size"
                 android:textColor="@color/detail_text_color"/>
 
+            <TextView
+                style="@style/DetailMovieTextLabel"
+                android:id="@+id/trailers_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="16dp"
+                android:text="Trailers"/>
+
+            <LinearLayout
+                android:id="@+id/trailers_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+            </LinearLayout>
+
         </LinearLayout>
 
     </ScrollView>
