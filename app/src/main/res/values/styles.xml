@@ -11,7 +11,12 @@
     <style name="DetailMovieTextLabel">
         <item name="android:textSize">@dimen/detail_label_text_size</item>
         <item name="android:textStyle">normal</item>
-        <item name="android:textColor">@color/colorPrimaryDark</item>
+        <item name="android:textColor">@color/orange_500</item>
+    </style>
+
+    <style name="DetailMovieSectionLabel" parent="DetailMovieTextLabel">
+        <item name="android:textSize">@dimen/detail_label_section_size</item>
+        <item name="android:textStyle">bold</item>
     </style>
 
     <style name="DetailMovieTextValue">

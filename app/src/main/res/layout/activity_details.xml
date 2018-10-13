@@ -2,7 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/dark_background"
+    android:background="@color/blue_gray_900"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <android.support.v7.widget.Toolbar
@@ -35,7 +35,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:padding="@dimen/detail_content_padding">
+                android:layout_marginBottom="12dp"
+                android:padding="@dimen/detail_content_padding"
+                android:background="@color/blue_gray_800">
 
                 <ImageView
                     android:id="@+id/movie_poster"
@@ -115,29 +117,69 @@
 
             </LinearLayout>
 
-            <TextView
-                android:id="@+id/movie_overview"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingLeft="@dimen/detail_content_padding"
-                android:paddingRight="@dimen/detail_content_padding"
-                android:paddingBottom="@dimen/detail_content_padding"
-                android:textSize="@dimen/detail_overview_text_size"
-                android:textColor="@color/detail_text_color"/>
+                android:orientation="vertical"
+                android:layout_marginBottom="12dp"
+                android:background="@color/blue_gray_800">
 
-            <TextView
-                style="@style/DetailMovieTextLabel"
-                android:id="@+id/trailers_label"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="16dp"
-                android:text="Trailers"/>
+                <TextView
+                    style="@style/DetailMovieSectionLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="12dp"
+                    android:text="@string/trailers"/>
+
+                <TextView
+                    android:id="@+id/movie_overview"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingLeft="@dimen/detail_content_padding"
+                    android:paddingRight="@dimen/detail_content_padding"
+                    android:paddingBottom="@dimen/detail_content_padding"
+                    android:textSize="@dimen/detail_overview_text_size"
+                    android:textColor="@color/detail_text_color"/>
+
+            </LinearLayout>
 
             <LinearLayout
-                android:id="@+id/trailers_container"
+                android:id="@+id/see_reviews_button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:orientation="horizontal"
+                android:layout_marginBottom="12dp"
+                android:background="@drawable/section_selector">
+
+                <TextView
+                    style="@style/DetailMovieSectionLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="12dp"
+                    android:text="@string/see_all_reviews"/>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="12dp"
+                android:background="@color/blue_gray_800">
+
+                <TextView
+                    style="@style/DetailMovieSectionLabel"
+                    android:id="@+id/trailers_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="12dp"
+                    android:text="@string/trailers"/>
+
+                <LinearLayout
+                    android:id="@+id/trailers_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"/>
 
             </LinearLayout>
 

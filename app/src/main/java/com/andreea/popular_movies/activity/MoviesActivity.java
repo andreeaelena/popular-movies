@@ -14,12 +14,13 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 
+import com.andreea.popular_movies.cache.DataManager;
 import com.andreea.popular_movies.callback.OnRecyclerViewItemClickListener;
 import com.andreea.popular_movies.R;
 import com.andreea.popular_movies.adapter.MoviesAdapter;
-import com.andreea.popular_movies.cache.DataCache;
 import com.andreea.popular_movies.callback.MoviesCallback;
 import com.andreea.popular_movies.model.Movie;
+import com.andreea.popular_movies.utils.Constants;
 
 import java.util.List;
 
@@ -27,7 +28,6 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 
 public class MoviesActivity extends AppCompatActivity {
-    public static final String EXTRA_MOVIE_ID = "movie_id";
     private static final String SORT_MENU_SELECTED_ITEM_INDEX = "sort_menu_selected_item_index";
 
     @BindView(R.id.loading_view) View mLoadingView;
@@ -39,7 +39,7 @@ public class MoviesActivity extends AppCompatActivity {
     private MoviesAdapter mMoviesAdapter;
     private GridLayoutManager mMoviesLayoutManager;
 
-    private DataCache.SortBy mSortBy;
+    private DataManager.SortBy mSortBy;
     private int mSortMenuSelectedItemIndex;
     private boolean mIsLoading = false;
 
@@ -90,10 +90,10 @@ public class MoviesActivity extends AppCompatActivity {
 
         switch (mSortMenuSelectedItemIndex) {
             case 0:
-                mSortBy = DataCache.SortBy.MOST_POPULAR;
+                mSortBy = DataManager.SortBy.MOST_POPULAR;
                 break;
             case 1:
-                mSortBy = DataCache.SortBy.TOP_RATED;
+                mSortBy = DataManager.SortBy.TOP_RATED;
                 break;
         }
 
@@ -133,8 +133,8 @@ public class MoviesActivity extends AppCompatActivity {
     private void loadData(boolean forced, boolean changeSortOrder) {
         mIsLoading = true;
         // If the sort order was just changed, set the page to 1
-        int page = changeSortOrder ? 1 : DataCache.getInstance().getCurrentPage() + 1;
-        DataCache.getInstance().getMovies(mSortBy, page, forced, new OnMoviesCallback());
+        int page = changeSortOrder ? 1 : DataManager.getInstance().getCurrentPage() + 1;
+        DataManager.getInstance().getMovies(mSortBy, page, forced, new OnMoviesCallback());
     }
 
     /**
@@ -151,12 +151,12 @@ public class MoviesActivity extends AppCompatActivity {
                 switch (item.getItemId()) {
                     case R.id.most_popular:
                         mSortMenuSelectedItemIndex = 0;
-                        mSortBy = DataCache.SortBy.MOST_POPULAR;
+                        mSortBy = DataManager.SortBy.MOST_POPULAR;
                         loadData(true, true);
                         return true;
                     case R.id.top_rated:
                         mSortMenuSelectedItemIndex = 1;
-                        mSortBy = DataCache.SortBy.TOP_RATED;
+                        mSortBy = DataManager.SortBy.TOP_RATED;
                         loadData(true, true);
                         return true;
                     default:
@@ -171,7 +171,7 @@ public class MoviesActivity extends AppCompatActivity {
 
     /**
      * Class that implements MoviesCallback and is used to return the movies data
-     * from the DataCache.
+     * from the DataManager.
      */
     class OnMoviesCallback implements MoviesCallback {
         @Override
@@ -205,7 +205,7 @@ public class MoviesActivity extends AppCompatActivity {
         @Override
         public void onClick(View view, int movieId) {
             Intent detailsActivityIntent = new Intent(MoviesActivity.this, DetailsActivity.class);
-            detailsActivityIntent.putExtra(EXTRA_MOVIE_ID, movieId);
+            detailsActivityIntent.putExtra(Constants.Extra.MOVIE_ID, movieId);
             startActivity(detailsActivityIntent);
         }
     }
@@ -224,7 +224,7 @@ public class MoviesActivity extends AppCompatActivity {
             int firstVisibleItemPosition = mMoviesLayoutManager.findFirstVisibleItemPosition();
 
             boolean shouldLoadNextPage = !mIsLoading
-                    && !DataCache.getInstance().isLastPage()
+                    && !DataManager.getInstance().isLastPage()
                     && visibleItemCount + firstVisibleItemPosition >= totalItemCount
                     && firstVisibleItemPosition >= 0;
 

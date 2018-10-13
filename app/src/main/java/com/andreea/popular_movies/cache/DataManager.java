@@ -14,27 +14,27 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class DataCache {
+public class DataManager {
 
     public enum SortBy {
         MOST_POPULAR,
         TOP_RATED
     }
 
-    private static DataCache sInstance;
+    private static DataManager sInstance;
 
     private MoviesCallback mMoviesCallback;
     private int mCurrentPage = 0;
     private int mTotalPages;
     private List<Movie> mMovieList;
 
-    private DataCache() {
+    private DataManager() {
         mMovieList = new ArrayList<>();
     }
 
-    public static DataCache getInstance() {
+    public static DataManager getInstance() {
         if (sInstance == null) {
-            sInstance = new DataCache();
+            sInstance = new DataManager();
         }
         return sInstance;
     }

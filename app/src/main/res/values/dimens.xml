@@ -19,4 +19,8 @@
     <dimen name="detail_label_text_size">16sp</dimen>
     <dimen name="detail_value_text_size">16sp</dimen>
     <dimen name="detail_overview_text_size">16sp</dimen>
+    <dimen name="detail_label_section_size">18sp</dimen>
+    <dimen name="review_item_margin_top_bottom">6dp</dimen>
+    <dimen name="review_item_padding">12dp</dimen>
+    <dimen name="review_text_margin_top">6dp</dimen>
 </resources>

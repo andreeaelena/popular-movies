@@ -17,13 +17,13 @@ import android.widget.TextView;
 
 import com.andreea.popular_movies.BuildConfig;
 import com.andreea.popular_movies.R;
-import com.andreea.popular_movies.adapter.MoviesAdapter;
-import com.andreea.popular_movies.cache.DataCache;
+import com.andreea.popular_movies.cache.DataManager;
 import com.andreea.popular_movies.model.Movie;
 import com.andreea.popular_movies.model.Video;
 import com.andreea.popular_movies.model.VideoResponse;
 import com.andreea.popular_movies.network.MoviesApi;
 import com.andreea.popular_movies.network.RetrofitClientInstance;
+import com.andreea.popular_movies.utils.Constants;
 import com.squareup.picasso.Picasso;
 
 import butterknife.BindView;
@@ -44,6 +44,7 @@ public class DetailsActivity extends AppCompatActivity {
     @BindView(R.id.movie_overview) TextView mMovieOverview;
     @BindView(R.id.trailers_label) TextView mTrailersLabel;
     @BindView(R.id.trailers_container) LinearLayout mTrailersContainer;
+    @BindView(R.id.see_reviews_button) View mReviewButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,8 +53,18 @@ public class DetailsActivity extends AppCompatActivity {
         ButterKnife.bind(this);
         setSupportActionBar(mToolbar);
 
-        int movieId = getIntent().getIntExtra(MoviesActivity.EXTRA_MOVIE_ID, 0);
-        Movie movie = DataCache.getInstance().getMovie(movieId);
+        final int movieId = getIntent().getIntExtra(Constants.Extra.MOVIE_ID, 0);
+        final Movie movie = DataManager.getInstance().getMovie(movieId);
+
+        mReviewButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent reviewsActivityIntent = new Intent(DetailsActivity.this, ReviewsActivity.class);
+                reviewsActivityIntent.putExtra(Constants.Extra.MOVIE_TITLE, movie.getTitle());
+                reviewsActivityIntent.putExtra(Constants.Extra.MOVIE_ID, movieId);
+                startActivity(reviewsActivityIntent);
+            }
+        });
 
         MoviesApi moviesApi = RetrofitClientInstance.getInstance().create(MoviesApi.class);
         Call<VideoResponse> videoResponseCall = moviesApi.getMovieVideos(movieId, BuildConfig.THE_MOVIE_DB_API_KEY);
@@ -91,7 +102,7 @@ public class DetailsActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<VideoResponse> call, Throwable t) {
-
+                // TODO
             }
         });
 

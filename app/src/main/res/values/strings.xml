@@ -6,4 +6,7 @@
     <string name="error_message">There was an error loading the movies.\nPlease try again!</string>
     <string name="retry">Retry</string>
     <string name="loading">LOADING</string>
+    <string name="reviewed_by">Reviewed by %s</string>
+    <string name="see_all_reviews">See all reviews</string>
+    <string name="trailers">Trailers</string>
 </resources>
