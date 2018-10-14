@@ -32,4 +32,6 @@
     <dimen name="trailer_thumbnail_height">50dp</dimen>
     <dimen name="trailer_name_margin_start">16dp</dimen>
     <dimen name="trailer_name_text_size">16sp</dimen>
+
+    <dimen name="favorites_icon_width_height">30dp</dimen>
 </resources>

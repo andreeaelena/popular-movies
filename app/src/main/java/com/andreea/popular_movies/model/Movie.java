@@ -1,9 +1,17 @@
 package com.andreea.popular_movies.model;
 
+import android.arch.persistence.room.ColumnInfo;
+import android.arch.persistence.room.Entity;
+import android.arch.persistence.room.Ignore;
+import android.arch.persistence.room.PrimaryKey;
+import android.support.annotation.NonNull;
+
+import com.andreea.popular_movies.utils.Constants;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
+@Entity(tableName = Constants.Database.FAVORITE_MOVIES_TABLE)
 public class Movie {
 
     private static final String IMAGE_BASE_URL = "http://image.tmdb.org/t/p/";
@@ -11,45 +19,61 @@ public class Movie {
     private static final String BACKDROP_SIZE = "w1280";
 
     @SerializedName("id")
+    @ColumnInfo(name = "id")
+    @PrimaryKey
+    @NonNull
     private Integer id;
 
     @SerializedName("title")
+    @ColumnInfo(name = "title")
     private String title;
 
     @SerializedName("original_title")
+    @ColumnInfo(name = "original_title")
     private String originalTitle;
 
     @SerializedName("overview")
+    @ColumnInfo(name = "overview")
     private String overview;
 
     @SerializedName("original_language")
+    @ColumnInfo(name = "original_language")
     private String originalLanguage;
 
     @SerializedName("release_date")
+    @ColumnInfo(name = "release_date")
     private String releaseDate;
 
     @SerializedName("poster_path")
+    @ColumnInfo(name = "poster_path")
     private String posterPath;
 
     @SerializedName("backdrop_path")
+    @ColumnInfo(name = "backdrop_path")
     private String backdropPath;
 
     @SerializedName("video")
+    @ColumnInfo(name = "video")
     private Boolean hasVideo;
 
     @SerializedName("vote_count")
+    @ColumnInfo(name = "vote_count")
     private Integer voteCount;
 
     @SerializedName("vote_average")
+    @ColumnInfo(name = "vote_average")
     private Double voteAverage;
 
     @SerializedName("popularity")
+    @ColumnInfo(name = "popularity")
     private Double popularity;
 
     @SerializedName("adult")
+    @ColumnInfo(name = "adult")
     private Boolean adult;
 
     @SerializedName("genre_ids")
+    @Ignore
     private List<Integer> genreIDs;
 
     public Movie(Integer id, String title, String originalTitle, String overview, String originalLanguage, String releaseDate, String posterPath, String backdropPath, Boolean hasVideo, Integer voteCount, Double voteAverage, Double popularity, Boolean adult, List<Integer> genreIDs) {
@@ -67,6 +91,25 @@ public class Movie {
         this.popularity = popularity;
         this.adult = adult;
         this.genreIDs = genreIDs;
+    }
+
+    /**
+     * Constructor used by the Room Database
+     */
+    public Movie(@NonNull Integer id, String title, String originalTitle, String overview, String originalLanguage, String releaseDate, String posterPath, String backdropPath, Boolean hasVideo, Integer voteCount, Double voteAverage, Double popularity, Boolean adult) {
+        this.id = id;
+        this.title = title;
+        this.originalTitle = originalTitle;
+        this.overview = overview;
+        this.originalLanguage = originalLanguage;
+        this.releaseDate = releaseDate;
+        this.posterPath = posterPath;
+        this.backdropPath = backdropPath;
+        this.hasVideo = hasVideo;
+        this.voteCount = voteCount;
+        this.voteAverage = voteAverage;
+        this.popularity = popularity;
+        this.adult = adult;
     }
 
     public Integer getId() {

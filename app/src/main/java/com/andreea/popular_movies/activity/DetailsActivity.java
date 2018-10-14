@@ -1,9 +1,11 @@
 package com.andreea.popular_movies.activity;
 
+import android.arch.lifecycle.Observer;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
@@ -18,6 +20,7 @@ import android.widget.TextView;
 import com.andreea.popular_movies.R;
 import com.andreea.popular_movies.callback.VideosRequestCallback;
 import com.andreea.popular_movies.data.DataManager;
+import com.andreea.popular_movies.database.FavoriteMoviesViewModel;
 import com.andreea.popular_movies.model.Movie;
 import com.andreea.popular_movies.model.Video;
 import com.andreea.popular_movies.utils.Constants;
@@ -42,6 +45,12 @@ public class DetailsActivity extends AppCompatActivity {
     @BindView(R.id.trailers_section) View mTrailersSection;
     @BindView(R.id.trailers_container) LinearLayout mTrailersContainer;
     @BindView(R.id.see_reviews_button) View mReviewButton;
+    @BindView(R.id.add_remove_favorites_button) View mAddRemoveFavoritesButton;
+    @BindView(R.id.add_remove_favorites_label) TextView mAddRemoveFavoritesLabel;
+    @BindView(R.id.add_remove_favorites_icon) ImageView mAddRemoveFavoritesIcon;
+
+    private FavoriteMoviesViewModel mFavoriteMoviesViewModel;
+    private boolean mIsInFavorites = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,6 +61,49 @@ public class DetailsActivity extends AppCompatActivity {
 
         final int movieId = getIntent().getIntExtra(Constants.Extra.MOVIE_ID, 0);
         final Movie movie = DataManager.getInstance().getMovie(movieId);
+
+        // Initialize the FavoriteMoviesViewModel that provides the Favorite Movies data
+        mFavoriteMoviesViewModel = new FavoriteMoviesViewModel(getApplication());
+        mFavoriteMoviesViewModel.getAllMovies().observe(this, new Observer<List<Movie>>() {
+            @Override
+            public void onChanged(@Nullable List<Movie> movieList) {
+                if (movieList != null) {
+                    // Check to see if the current movie is in the database
+                    mIsInFavorites = mFavoriteMoviesViewModel.getMovie(movieId) != null;
+
+                    // Set the status of the Favorites button
+                    if (mIsInFavorites) {
+                        mAddRemoveFavoritesLabel.setText(R.string.remove_from_favorites);
+                        mAddRemoveFavoritesIcon.setImageResource(R.drawable.ic_star_white);
+                    } else {
+                        mAddRemoveFavoritesLabel.setText(R.string.add_to_favorites);
+                        mAddRemoveFavoritesIcon.setImageResource(R.drawable.ic_star_border_white);
+                    }
+                }
+            }
+        });
+
+        mReviewButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent reviewsActivityIntent = new Intent(DetailsActivity.this, ReviewsActivity.class);
+                reviewsActivityIntent.putExtra(Constants.Extra.MOVIE_TITLE, movie.getTitle());
+                reviewsActivityIntent.putExtra(Constants.Extra.MOVIE_ID, movie.getId());
+                startActivity(reviewsActivityIntent);
+            }
+        });
+
+        mAddRemoveFavoritesButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // If the movie is already in the database, remove it, otherwise add it.
+                if (mIsInFavorites) {
+                    mFavoriteMoviesViewModel.delete(movie.getId());
+                } else {
+                    mFavoriteMoviesViewModel.insert(movie);
+                }
+            }
+        });
 
         setupData(movie);
 
@@ -86,16 +138,6 @@ public class DetailsActivity extends AppCompatActivity {
             mMovieRatingView.setText(String.valueOf(movie.getVoteAverage()));
             mMovieReleaseDateView.setText(movie.getReleaseDate());
             mMovieOverview.setText(movie.getOverview());
-
-            mReviewButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Intent reviewsActivityIntent = new Intent(DetailsActivity.this, ReviewsActivity.class);
-                    reviewsActivityIntent.putExtra(Constants.Extra.MOVIE_TITLE, movie.getTitle());
-                    reviewsActivityIntent.putExtra(Constants.Extra.MOVIE_ID, movie.getId());
-                    startActivity(reviewsActivityIntent);
-                }
-            });
         }
     }
 
