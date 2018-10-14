@@ -43,12 +43,11 @@
         android:visibility="gone">
 
         <TextView
+            style="@style/NoDataTextStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/grid_error_label_margin_bottom"
-            android:gravity="center"
-            android:textSize="@dimen/grid_error_label_text_size"
-            android:text="@string/error_message"/>
+            android:text="@string/movies_error_message"/>
 
         <Button
             android:id="@+id/retry_button"

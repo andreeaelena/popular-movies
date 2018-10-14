@@ -14,11 +14,11 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 
-import com.andreea.popular_movies.cache.DataManager;
+import com.andreea.popular_movies.callback.MoviesRequestCallback;
+import com.andreea.popular_movies.data.DataManager;
 import com.andreea.popular_movies.callback.OnRecyclerViewItemClickListener;
 import com.andreea.popular_movies.R;
 import com.andreea.popular_movies.adapter.MoviesAdapter;
-import com.andreea.popular_movies.callback.MoviesCallback;
 import com.andreea.popular_movies.model.Movie;
 import com.andreea.popular_movies.utils.Constants;
 
@@ -134,7 +134,7 @@ public class MoviesActivity extends AppCompatActivity {
         mIsLoading = true;
         // If the sort order was just changed, set the page to 1
         int page = changeSortOrder ? 1 : DataManager.getInstance().getCurrentPage() + 1;
-        DataManager.getInstance().getMovies(mSortBy, page, forced, new OnMoviesCallback());
+        DataManager.getInstance().getMovies(mSortBy, page, forced, new OnMoviesRequestCallback());
     }
 
     /**
@@ -170,10 +170,10 @@ public class MoviesActivity extends AppCompatActivity {
     }
 
     /**
-     * Class that implements MoviesCallback and is used to return the movies data
+     * Class that implements MoviesRequestCallback and is used to return the movies data
      * from the DataManager.
      */
-    class OnMoviesCallback implements MoviesCallback {
+    class OnMoviesRequestCallback implements MoviesRequestCallback {
         @Override
         public void onMoviesResponse(List<Movie> movieList) {
             mIsLoading = false;

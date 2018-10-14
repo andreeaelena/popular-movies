@@ -9,8 +9,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:background="@color/blue_gray_800"
-        android:padding="@dimen/review_item_padding">
+        android:background="@color/blue_gray_800">
 
         <TextView
             style="@style/DetailMovieSectionLabel"
@@ -23,7 +22,9 @@
             android:id="@+id/review"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/review_text_margin_top"
+            android:paddingLeft="@dimen/review_content_padding"
+            android:paddingRight="@dimen/review_content_padding"
+            android:paddingBottom="@dimen/review_content_padding"
             android:textColor="@color/white"/>
 
     </LinearLayout>

@@ -15,22 +15,18 @@ import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
-import com.andreea.popular_movies.BuildConfig;
 import com.andreea.popular_movies.R;
-import com.andreea.popular_movies.cache.DataManager;
+import com.andreea.popular_movies.callback.VideosRequestCallback;
+import com.andreea.popular_movies.data.DataManager;
 import com.andreea.popular_movies.model.Movie;
 import com.andreea.popular_movies.model.Video;
-import com.andreea.popular_movies.model.VideoResponse;
-import com.andreea.popular_movies.network.MoviesApi;
-import com.andreea.popular_movies.network.RetrofitClientInstance;
 import com.andreea.popular_movies.utils.Constants;
 import com.squareup.picasso.Picasso;
 
+import java.util.List;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 public class DetailsActivity extends AppCompatActivity {
 
@@ -43,6 +39,7 @@ public class DetailsActivity extends AppCompatActivity {
     @BindView(R.id.movie_release_date) TextView mMovieReleaseDateView;
     @BindView(R.id.movie_overview) TextView mMovieOverview;
     @BindView(R.id.trailers_label) TextView mTrailersLabel;
+    @BindView(R.id.trailers_section) View mTrailersSection;
     @BindView(R.id.trailers_container) LinearLayout mTrailersContainer;
     @BindView(R.id.see_reviews_button) View mReviewButton;
 
@@ -56,56 +53,13 @@ public class DetailsActivity extends AppCompatActivity {
         final int movieId = getIntent().getIntExtra(Constants.Extra.MOVIE_ID, 0);
         final Movie movie = DataManager.getInstance().getMovie(movieId);
 
-        mReviewButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent reviewsActivityIntent = new Intent(DetailsActivity.this, ReviewsActivity.class);
-                reviewsActivityIntent.putExtra(Constants.Extra.MOVIE_TITLE, movie.getTitle());
-                reviewsActivityIntent.putExtra(Constants.Extra.MOVIE_ID, movieId);
-                startActivity(reviewsActivityIntent);
-            }
-        });
+        setupData(movie);
 
-        MoviesApi moviesApi = RetrofitClientInstance.getInstance().create(MoviesApi.class);
-        Call<VideoResponse> videoResponseCall = moviesApi.getMovieVideos(movieId, BuildConfig.THE_MOVIE_DB_API_KEY);
-        videoResponseCall.enqueue(new Callback<VideoResponse>() {
-            @Override
-            public void onResponse(Call<VideoResponse> call, Response<VideoResponse> response) {
-                final VideoResponse videoResponse = response.body();
-                if (videoResponse != null && videoResponse.getResults().size() > 0) {
-                    LayoutInflater inflater = LayoutInflater.from(DetailsActivity.this);
+        // Get the videos for the current movie asynchronously
+        DataManager.getInstance().getVideos(movie.getId(), new OnVideosRequestCallback());
+    }
 
-                    for (int i = 0; i < videoResponse.getResults().size(); i++) {
-                        final Video trailer = videoResponse.getResults().get(i);
-
-                        View trailerLayout = inflater.inflate(R.layout.trailer_layout, null);
-                        View trailerThumbnail = trailerLayout.findViewById(R.id.trailer_thumbnail);
-                        trailerThumbnail.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                Intent appIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube:" + trailer.getKey()));
-                                Intent webIntent = new Intent(Intent.ACTION_VIEW,
-                                        Uri.parse("http://www.youtube.com/watch?v=" + trailer.getKey()));
-                                try {
-                                    startActivity(appIntent);
-                                } catch (ActivityNotFoundException ex) {
-                                    startActivity(webIntent);
-                                }
-                            }
-                        });
-                        TextView trailerName = trailerLayout.findViewById(R.id.trailer_name);
-                        trailerName.setText(trailer.getName());
-                        mTrailersContainer.addView(trailerLayout);
-                    }
-                }
-            }
-
-            @Override
-            public void onFailure(Call<VideoResponse> call, Throwable t) {
-                // TODO
-            }
-        });
-
+    private void setupData(final Movie movie) {
         if (movie != null) {
             setTitle(movie.getTitle());
 
@@ -132,6 +86,33 @@ public class DetailsActivity extends AppCompatActivity {
             mMovieRatingView.setText(String.valueOf(movie.getVoteAverage()));
             mMovieReleaseDateView.setText(movie.getReleaseDate());
             mMovieOverview.setText(movie.getOverview());
+
+            mReviewButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent reviewsActivityIntent = new Intent(DetailsActivity.this, ReviewsActivity.class);
+                    reviewsActivityIntent.putExtra(Constants.Extra.MOVIE_TITLE, movie.getTitle());
+                    reviewsActivityIntent.putExtra(Constants.Extra.MOVIE_ID, movie.getId());
+                    startActivity(reviewsActivityIntent);
+                }
+            });
+        }
+    }
+
+    private void openVideoInYouTube(Video trailer) {
+        String youtubeAppUri = String.format(
+                Constants.Other.YOUTUBE_VIDEO_APP_URI_FORMAT,
+                trailer.getKey());
+        Intent appIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(youtubeAppUri));
+
+        String youtubeWebUrl = String.format(
+                Constants.Other.YOUTUBE_VIDEO_WEB_URL_FORMAT,
+                trailer.getKey());
+        Intent webIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(youtubeWebUrl));
+        try {
+            startActivity(appIntent);
+        } catch (ActivityNotFoundException ex) {
+            startActivity(webIntent);
         }
     }
 
@@ -142,5 +123,46 @@ public class DetailsActivity extends AppCompatActivity {
             finish();
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    /**
+     * Class that implements VideosRequestCallback and is used to return the videos data
+     * from the DataManager.
+     */
+    class OnVideosRequestCallback implements VideosRequestCallback {
+
+        @Override
+        public void onVideosResponse(List<Video> videoList) {
+            if (videoList.size() > 0) {
+                LayoutInflater inflater = LayoutInflater.from(DetailsActivity.this);
+
+                // Iterate through all the videos and programmatically add a trailer item view
+                // in the trailer section
+                for (int i = 0; i < videoList.size(); i++) {
+                    mTrailersSection.setVisibility(View.VISIBLE);
+
+                    final Video trailer = videoList.get(i);
+                    View trailerLayout = inflater.inflate(R.layout.trailer_layout, null);
+                    trailerLayout.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            openVideoInYouTube(trailer);
+                        }
+                    });
+                    TextView trailerName = trailerLayout.findViewById(R.id.trailer_name);
+                    trailerName.setText(trailer.getName());
+                    mTrailersContainer.addView(trailerLayout);
+                }
+            } else {
+                // Do not show the Trailers section if there are not trailers available
+                mTrailersSection.setVisibility(View.GONE);
+            }
+        }
+
+        @Override
+        public void onVideosFailure(Throwable throwable) {
+            // Do not show the Trailers section if there are not trailers available
+            mTrailersSection.setVisibility(View.GONE);
+        }
     }
 }

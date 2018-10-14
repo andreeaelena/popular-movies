@@ -17,12 +17,19 @@
     <style name="DetailMovieSectionLabel" parent="DetailMovieTextLabel">
         <item name="android:textSize">@dimen/detail_label_section_size</item>
         <item name="android:textStyle">bold</item>
+        <item name="android:layout_margin">12dp</item>
     </style>
 
     <style name="DetailMovieTextValue">
         <item name="android:textSize">@dimen/detail_value_text_size</item>
         <item name="android:textStyle">bold</item>
         <item name="android:textColor">@color/detail_text_color</item>
+    </style>
+
+    <style name="NoDataTextStyle">
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textSize">@dimen/grid_error_label_text_size</item>
+        <item name="android:gravity">center</item>
     </style>
 
 </resources>

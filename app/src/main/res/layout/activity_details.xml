@@ -29,13 +29,14 @@
                 android:id="@+id/movie_backdrop"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/detail_section_margin_bottom"
                 android:scaleType="centerCrop"/>
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginBottom="12dp"
+                android:layout_marginBottom="@dimen/detail_section_margin_bottom"
                 android:padding="@dimen/detail_content_padding"
                 android:background="@color/blue_gray_800">
 
@@ -121,15 +122,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:layout_marginBottom="12dp"
+                android:layout_marginBottom="@dimen/detail_section_margin_bottom"
                 android:background="@color/blue_gray_800">
 
                 <TextView
                     style="@style/DetailMovieSectionLabel"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_margin="12dp"
-                    android:text="@string/trailers"/>
+                    android:text="@string/overview"/>
 
                 <TextView
                     android:id="@+id/movie_overview"
@@ -143,36 +143,43 @@
 
             </LinearLayout>
 
-            <LinearLayout
+            <RelativeLayout
                 android:id="@+id/see_reviews_button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="12dp"
+                android:layout_marginBottom="@dimen/detail_section_margin_bottom"
                 android:background="@drawable/section_selector">
 
                 <TextView
                     style="@style/DetailMovieSectionLabel"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_margin="12dp"
                     android:text="@string/see_all_reviews"/>
 
-            </LinearLayout>
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:layout_marginEnd="12dp"
+                    android:src="@drawable/ic_chevron_right_white"/>
+
+            </RelativeLayout>
 
             <LinearLayout
+                android:id="@+id/trailers_section"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:layout_marginBottom="12dp"
-                android:background="@color/blue_gray_800">
+                android:layout_marginBottom="@dimen/detail_section_margin_bottom"
+                android:background="@color/blue_gray_800"
+                android:visibility="gone">
 
                 <TextView
                     style="@style/DetailMovieSectionLabel"
                     android:id="@+id/trailers_label"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_margin="12dp"
                     android:text="@string/trailers"/>
 
                 <LinearLayout

@@ -8,32 +8,33 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 
-import com.andreea.popular_movies.BuildConfig;
 import com.andreea.popular_movies.R;
 import com.andreea.popular_movies.adapter.ReviewsAdapter;
+import com.andreea.popular_movies.callback.ReviewsRequestCallback;
+import com.andreea.popular_movies.data.DataManager;
 import com.andreea.popular_movies.model.Review;
-import com.andreea.popular_movies.model.ReviewResponse;
-import com.andreea.popular_movies.network.MoviesApi;
-import com.andreea.popular_movies.network.RetrofitClientInstance;
 import com.andreea.popular_movies.utils.Constants;
 
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 public class ReviewsActivity extends AppCompatActivity {
 
     @BindView(R.id.review_toolbar) Toolbar mToolbar;
     @BindView(R.id.loading_view) ProgressBar mLoadingView;
     @BindView(R.id.reviews_recycler_view) RecyclerView mReviewsRecyclerView;
+    @BindView(R.id.no_data_view) View mNoDataView;
+    @BindView(R.id.no_data_message) TextView mNoDataMessage;
+    @BindView(R.id.retry_button) Button mRetryButton;
 
     private ReviewsAdapter mReviewsAdapter;
+    private String mMovieTitle;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -43,9 +44,9 @@ public class ReviewsActivity extends AppCompatActivity {
         setSupportActionBar(mToolbar);
 
         final int movieId = getIntent().getIntExtra(Constants.Extra.MOVIE_ID, 0);
-        final String movieTitle = getIntent().getStringExtra(Constants.Extra.MOVIE_TITLE);
+        mMovieTitle = getIntent().getStringExtra(Constants.Extra.MOVIE_TITLE);
 
-        setTitle(movieTitle);
+        setTitle(mMovieTitle);
 
         mReviewsAdapter = new ReviewsAdapter(getApplicationContext());
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
@@ -54,31 +55,8 @@ public class ReviewsActivity extends AppCompatActivity {
         mReviewsRecyclerView.setHasFixedSize(true);
         mReviewsRecyclerView.offsetChildrenVertical(20);
 
-        MoviesApi moviesApi = RetrofitClientInstance.getInstance().create(MoviesApi.class);
-        Call<ReviewResponse> reviewResponseCall = moviesApi.getMovieReview(movieId, BuildConfig.THE_MOVIE_DB_API_KEY);
-        reviewResponseCall.enqueue(new Callback<ReviewResponse>() {
-            @Override
-            public void onResponse(Call<ReviewResponse> call, Response<ReviewResponse> response) {
-                ReviewResponse reviewResponse = response.body();
-                List<Review> reviewList = reviewResponse.getResults();
-
-                mLoadingView.setVisibility(View.GONE);
-
-                if (reviewList.size() > 0) {
-                    mReviewsRecyclerView.setVisibility(View.VISIBLE);
-                    mReviewsAdapter.setReviewsData(reviewResponse.getResults());
-                    mReviewsAdapter.notifyDataSetChanged();
-                } else {
-                    // TODO: show error view
-                }
-            }
-
-            @Override
-            public void onFailure(Call<ReviewResponse> call, Throwable t) {
-                mLoadingView.setVisibility(View.GONE);
-                // TODO
-            }
-        });
+        // Get the reviews for the current movie asynchronously
+        DataManager.getInstance().getReviews(movieId, new ReviewsRetrofitCallback());
     }
 
     @Override
@@ -88,5 +66,37 @@ public class ReviewsActivity extends AppCompatActivity {
             finish();
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    /**
+     * Class that implements ReviewsRequestCallback and is used to return the reviews data
+     * from the DataManager.
+     */
+    class ReviewsRetrofitCallback implements ReviewsRequestCallback {
+
+        @Override
+        public void onReviewsResponse(List<Review> reviewList) {
+            mLoadingView.setVisibility(View.GONE);
+
+            if (reviewList.size() > 0) {
+                mReviewsRecyclerView.setVisibility(View.VISIBLE);
+                mReviewsAdapter.setReviewsData(reviewList);
+                mReviewsAdapter.notifyDataSetChanged();
+            } else {
+                // Display a message informing the user that there are not reviews available
+                mNoDataView.setVisibility(View.VISIBLE);
+                String noDataMessage = String.format(getString(R.string.no_reviews_message), mMovieTitle);
+                mNoDataMessage.setText(noDataMessage);
+                mRetryButton.setVisibility(View.GONE);
+            }
+        }
+
+        @Override
+        public void onReviewsFailure(Throwable throwable) {
+            // Display an error message informing the user that the reviews could not be loaded,
+            // with an option to retry.
+            mLoadingView.setVisibility(View.GONE);
+            mNoDataView.setVisibility(View.VISIBLE);
+        }
     }
 }
