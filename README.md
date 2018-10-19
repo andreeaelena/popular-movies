@@ -15,8 +15,18 @@ The API Key is defined in this way to avoid committing it to the public GitHub r
 #### Portrait Movies Grid:
 ![alt text](screenshots/movies_grid_portrait_with_sort_menu.png?raw=true "Portrait Grid")
 
+#### Portrait Favorites Grid:
+![alt text](screenshots/favorites.png?raw=true "Portrait Favorites Grid")
+
+#### Portrait Favorites Grid - no movies:
+![alt text](screenshots/favorites_no_movies.png?raw=true "Portrait Favorites Grid - no movies")
+
 #### Portrait Movie Detail:
-![alt text](screenshots/movie_details.png?raw=true "Portrait Details")
+![alt text](screenshots/movie_details_top.png?raw=true "Portrait Details top")
+![alt text](screenshots/movie_details_bottom.png?raw=true "Portrait Details bottom")
+
+#### Movie Reviews:
+![alt text](screenshots/movie_reviews.png?raw=true "Movie Reviews")
 
 #### Landscape Movies Grid:
 ![alt text](screenshots/movies_grid_landscape.png?raw=true "Landscape Grid")
