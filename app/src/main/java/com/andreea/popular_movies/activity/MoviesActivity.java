@@ -100,13 +100,16 @@ public class MoviesActivity extends AppCompatActivity {
         switch (mSortMenuSelectedItemIndex) {
             case 0:
                 mSortBy = DataManager.SortBy.MOST_POPULAR;
+                mToolbar.setTitle(R.string.most_popular_movies);
                 loadData(false, false);
                 break;
             case 1:
                 mSortBy = DataManager.SortBy.TOP_RATED;
                 loadData(false, false);
+                mToolbar.setTitle(R.string.top_rated_movies);
                 break;
             case 2:
+                mToolbar.setTitle(R.string.favorite_movies);
                 loadFavoriteMovies();
         }
     }
@@ -202,15 +205,18 @@ public class MoviesActivity extends AppCompatActivity {
                     case R.id.most_popular:
                         mSortMenuSelectedItemIndex = 0;
                         mSortBy = DataManager.SortBy.MOST_POPULAR;
+                        mToolbar.setTitle(R.string.most_popular_movies);
                         loadData(true, true);
                         return true;
                     case R.id.top_rated:
                         mSortMenuSelectedItemIndex = 1;
                         mSortBy = DataManager.SortBy.TOP_RATED;
+                        mToolbar.setTitle(R.string.top_rated_movies);
                         loadData(true, true);
                         return true;
                     case R.id.favorite_movies:
                         mSortMenuSelectedItemIndex = 2;
+                        mToolbar.setTitle(R.string.favorite_movies);
                         loadFavoriteMovies();
                         return true;
                     default:
