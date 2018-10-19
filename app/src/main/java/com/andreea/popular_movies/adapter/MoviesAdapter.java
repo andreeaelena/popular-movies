@@ -22,6 +22,7 @@ public class MoviesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 
     private List<Movie> mMovieList = new ArrayList<>();
     private OnRecyclerViewItemClickListener mOnItemClickListener;
+    private boolean mShouldShowLoadingView;
 
     /**
      * The MoviesAdapter used by the RecyclerView
@@ -58,18 +59,19 @@ public class MoviesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
             // Download the image using Picasso
             Picasso.get()
                     .load(currentMovie.computeFinalPosterUrl())
+                    .placeholder(R.drawable.image_placeholder)
                     .into(posterView);
         }
     }
 
     @Override
     public int getItemCount() {
-        return mMovieList.size() + 1;
+        return mMovieList.size() + (mShouldShowLoadingView ? 1 : 0);
     }
 
     @Override
     public int getItemViewType(int position) {
-        return (position == mMovieList.size())
+        return (position == mMovieList.size() && mShouldShowLoadingView)
                 ? ITEM_TYPE_LOADING
                 : ITEM_TYPE_MOVIE;
     }
@@ -77,9 +79,14 @@ public class MoviesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     /**
      * Sets a movie list that should be displayed inside the RecyclerView.
      */
-    public void setMoviesData(List<Movie> movieList) {
+    public void setMoviesData(List<Movie> movieList, boolean shouldShowLoadingView) {
+        mShouldShowLoadingView = shouldShowLoadingView;
         mMovieList.clear();
         mMovieList.addAll(movieList);
+    }
+
+    public void clearMoviesData() {
+        mMovieList.clear();
     }
 
     /**

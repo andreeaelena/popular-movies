@@ -5,6 +5,7 @@ public class Constants {
     public class Extra {
         public static final String MOVIE_TITLE = "movie_title";
         public static final String MOVIE_ID = "movie_id";
+        public static final String IS_FAVORITE_MOVIE = "is_favorite_movie";
     }
 
     public class Other {

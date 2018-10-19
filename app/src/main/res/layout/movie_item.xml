@@ -9,7 +9,6 @@
         android:layout_width="@dimen/grid_poster_width"
         android:layout_height="@dimen/grid_poster_height"
         android:layout_gravity="center"
-        android:scaleType="centerCrop"
-        android:background="@android:color/darker_gray"/>
+        android:scaleType="centerCrop"/>
 
 </FrameLayout>

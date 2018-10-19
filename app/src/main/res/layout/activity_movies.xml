@@ -33,7 +33,7 @@
         android:visibility="gone"/>
 
     <LinearLayout
-        android:id="@+id/error_view"
+        android:id="@+id/no_data_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
@@ -44,6 +44,7 @@
 
         <TextView
             style="@style/NoDataTextStyle"
+            android:id="@+id/no_data_message"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/grid_error_label_margin_bottom"

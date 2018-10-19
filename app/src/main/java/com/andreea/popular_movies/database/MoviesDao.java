@@ -11,10 +11,10 @@ import com.andreea.popular_movies.model.Movie;
 import java.util.List;
 
 /**
- * The Favorite Movies data access object
+ * The Movies data access object
  */
 @Dao
-public interface FavoriteMoviesDao {
+public interface MoviesDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insert(Movie movie);
@@ -26,5 +26,8 @@ public interface FavoriteMoviesDao {
     void deleteAll();
 
     @Query("SELECT * from favorite_movies_table ORDER BY title ASC")
-    LiveData<List<Movie>> getAllMovies();
+    LiveData<List<Movie>> getFavoriteMovies();
+
+    @Query("SELECT * from favorite_movies_table WHERE id=:movieId ORDER BY title ASC")
+    LiveData<Movie> getFavoriteMovie(Integer movieId);
 }

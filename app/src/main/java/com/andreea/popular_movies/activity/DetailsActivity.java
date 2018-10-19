@@ -20,7 +20,7 @@ import android.widget.TextView;
 import com.andreea.popular_movies.R;
 import com.andreea.popular_movies.callback.VideosRequestCallback;
 import com.andreea.popular_movies.data.DataManager;
-import com.andreea.popular_movies.database.FavoriteMoviesViewModel;
+import com.andreea.popular_movies.database.MoviesViewModel;
 import com.andreea.popular_movies.model.Movie;
 import com.andreea.popular_movies.model.Video;
 import com.andreea.popular_movies.utils.Constants;
@@ -49,7 +49,7 @@ public class DetailsActivity extends AppCompatActivity {
     @BindView(R.id.add_remove_favorites_label) TextView mAddRemoveFavoritesLabel;
     @BindView(R.id.add_remove_favorites_icon) ImageView mAddRemoveFavoritesIcon;
 
-    private FavoriteMoviesViewModel mFavoriteMoviesViewModel;
+    private MoviesViewModel mMoviesViewModel;
     private boolean mIsInFavorites = false;
 
     @Override
@@ -59,17 +59,30 @@ public class DetailsActivity extends AppCompatActivity {
         ButterKnife.bind(this);
         setSupportActionBar(mToolbar);
 
-        final int movieId = getIntent().getIntExtra(Constants.Extra.MOVIE_ID, 0);
-        final Movie movie = DataManager.getInstance().getMovie(movieId);
+        // Initialize the MoviesViewModel that provides the Favorite Movies data
+        mMoviesViewModel = new MoviesViewModel(getApplication());
 
-        // Initialize the FavoriteMoviesViewModel that provides the Favorite Movies data
-        mFavoriteMoviesViewModel = new FavoriteMoviesViewModel(getApplication());
-        mFavoriteMoviesViewModel.getAllMovies().observe(this, new Observer<List<Movie>>() {
+        final int movieId = getIntent().getIntExtra(Constants.Extra.MOVIE_ID, 0);
+        final boolean isFavorite = getIntent().getBooleanExtra(Constants.Extra.IS_FAVORITE_MOVIE, false);
+
+        mMoviesViewModel.getMovie(movieId, isFavorite).observe(this, new Observer<Movie>() {
+            @Override
+            public void onChanged(@Nullable Movie movie) {
+                setupData(movie);
+            }
+        });
+
+        mMoviesViewModel.getFavoriteMovies().observe(this, new Observer<List<Movie>>() {
             @Override
             public void onChanged(@Nullable List<Movie> movieList) {
                 if (movieList != null) {
-                    // Check to see if the current movie is in the database
-                    mIsInFavorites = mFavoriteMoviesViewModel.getMovie(movieId) != null;
+                    mIsInFavorites = false;
+                    for (Movie currentMovie : movieList) {
+                        if (currentMovie.getId() == movieId) {
+                            mIsInFavorites = true;
+                            break;
+                        }
+                    }
 
                     // Set the status of the Favorites button
                     if (mIsInFavorites) {
@@ -83,32 +96,8 @@ public class DetailsActivity extends AppCompatActivity {
             }
         });
 
-        mReviewButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent reviewsActivityIntent = new Intent(DetailsActivity.this, ReviewsActivity.class);
-                reviewsActivityIntent.putExtra(Constants.Extra.MOVIE_TITLE, movie.getTitle());
-                reviewsActivityIntent.putExtra(Constants.Extra.MOVIE_ID, movie.getId());
-                startActivity(reviewsActivityIntent);
-            }
-        });
-
-        mAddRemoveFavoritesButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // If the movie is already in the database, remove it, otherwise add it.
-                if (mIsInFavorites) {
-                    mFavoriteMoviesViewModel.delete(movie.getId());
-                } else {
-                    mFavoriteMoviesViewModel.insert(movie);
-                }
-            }
-        });
-
-        setupData(movie);
-
         // Get the videos for the current movie asynchronously
-        DataManager.getInstance().getVideos(movie.getId(), new OnVideosRequestCallback());
+        DataManager.getInstance().getVideos(movieId, new OnVideosRequestCallback());
     }
 
     private void setupData(final Movie movie) {
@@ -132,12 +121,35 @@ public class DetailsActivity extends AppCompatActivity {
             // Download the poster image using Picasso
             Picasso.get()
                     .load(movie.computeFinalPosterUrl())
+                    .placeholder(R.drawable.image_placeholder)
                     .into(mMoviePosterView);
 
             mMovieTitleView.setText(movie.getTitle());
             mMovieRatingView.setText(String.valueOf(movie.getVoteAverage()));
             mMovieReleaseDateView.setText(movie.getReleaseDate());
             mMovieOverview.setText(movie.getOverview());
+
+            mReviewButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent reviewsActivityIntent = new Intent(DetailsActivity.this, ReviewsActivity.class);
+                    reviewsActivityIntent.putExtra(Constants.Extra.MOVIE_TITLE, movie.getTitle());
+                    reviewsActivityIntent.putExtra(Constants.Extra.MOVIE_ID, movie.getId());
+                    startActivity(reviewsActivityIntent);
+                }
+            });
+
+            mAddRemoveFavoritesButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    // If the movie is already in the database, remove it, otherwise add it.
+                    if (mIsInFavorites) {
+                        mMoviesViewModel.delete(movie.getId());
+                    } else {
+                        mMoviesViewModel.insert(movie);
+                    }
+                }
+            });
         }
     }
 

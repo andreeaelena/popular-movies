@@ -12,19 +12,19 @@ import com.andreea.popular_movies.utils.Constants;
  * Room database used to store movie data
  */
 @Database(entities = {Movie.class}, version = 1)
-public abstract class FavoriteMoviesRoomDatabase extends RoomDatabase {
+public abstract class MoviesRoomDatabase extends RoomDatabase {
 
-    private static volatile FavoriteMoviesRoomDatabase INSTANCE;
+    private static volatile MoviesRoomDatabase INSTANCE;
 
-    public abstract FavoriteMoviesDao favoriteMoviesDao();
+    public abstract MoviesDao favoriteMoviesDao();
 
-    static FavoriteMoviesRoomDatabase getDatabase(final Context context) {
+    static MoviesRoomDatabase getDatabase(final Context context) {
         if (INSTANCE == null) {
-            synchronized (FavoriteMoviesRoomDatabase.class) {
+            synchronized (MoviesRoomDatabase.class) {
                 if (INSTANCE == null) {
                     INSTANCE = Room.databaseBuilder(
                             context.getApplicationContext(),
-                            FavoriteMoviesRoomDatabase.class,
+                            MoviesRoomDatabase.class,
                             Constants.Database.MOVIES_DATABASE)
                             .build();
                 }

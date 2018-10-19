@@ -14,4 +14,8 @@
     <string name="overview">Overview</string>
     <string name="add_to_favorites">Add to favorites</string>
     <string name="remove_from_favorites">Remove from favorites</string>
+    <string name="most_popular">Most popular</string>
+    <string name="top_rated">Top rated</string>
+    <string name="favorites">Favorites</string>
+    <string name="no_favorite_movies">There are no movies added to the favorites list.\nClick on the \"Add to favorites\" button for a movie to see it here.</string>
 </resources>

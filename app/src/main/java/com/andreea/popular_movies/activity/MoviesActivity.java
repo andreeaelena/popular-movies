@@ -1,7 +1,9 @@
 package com.andreea.popular_movies.activity;
 
+import android.arch.lifecycle.Observer;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.PopupMenu;
@@ -13,12 +15,14 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 
 import com.andreea.popular_movies.callback.MoviesRequestCallback;
 import com.andreea.popular_movies.data.DataManager;
 import com.andreea.popular_movies.callback.OnRecyclerViewItemClickListener;
 import com.andreea.popular_movies.R;
 import com.andreea.popular_movies.adapter.MoviesAdapter;
+import com.andreea.popular_movies.database.MoviesViewModel;
 import com.andreea.popular_movies.model.Movie;
 import com.andreea.popular_movies.utils.Constants;
 
@@ -32,12 +36,14 @@ public class MoviesActivity extends AppCompatActivity {
 
     @BindView(R.id.loading_view) View mLoadingView;
     @BindView(R.id.movies_grid) RecyclerView mMoviesGrid;
-    @BindView(R.id.error_view) View mErrorView;
+    @BindView(R.id.no_data_view) View mNoDataView;
+    @BindView(R.id.no_data_message) TextView mNoDataMessage;
     @BindView(R.id.retry_button) Button mRetryButton;
     @BindView(R.id.movies_toolbar) Toolbar mToolbar;
 
     private MoviesAdapter mMoviesAdapter;
     private GridLayoutManager mMoviesLayoutManager;
+    private MoviesViewModel mMoviesViewModel;
 
     private DataManager.SortBy mSortBy;
     private int mSortMenuSelectedItemIndex;
@@ -73,11 +79,14 @@ public class MoviesActivity extends AppCompatActivity {
         mMoviesGrid.setAdapter(mMoviesAdapter);
         mMoviesGrid.addOnScrollListener(new OnMovieGridScrollListener());
 
+        // Initialize the MoviesViewModel that provides the Favorite Movies data
+        mMoviesViewModel = new MoviesViewModel(getApplication());
+
         // Re-trigger the movies request when the error view Retry button is clicked
         mRetryButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mErrorView.setVisibility(View.GONE);
+                mNoDataView.setVisibility(View.GONE);
                 mLoadingView.setVisibility(View.VISIBLE);
                 loadData(true, false);
             }
@@ -91,20 +100,20 @@ public class MoviesActivity extends AppCompatActivity {
         switch (mSortMenuSelectedItemIndex) {
             case 0:
                 mSortBy = DataManager.SortBy.MOST_POPULAR;
+                loadData(false, false);
                 break;
             case 1:
                 mSortBy = DataManager.SortBy.TOP_RATED;
+                loadData(false, false);
                 break;
+            case 2:
+                loadFavoriteMovies();
         }
-
-        // Get the movies data that needs to be displayed inside the mMoviesGrid RecyclerView
-        loadData(false, false);
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         outState.putInt(SORT_MENU_SELECTED_ITEM_INDEX, mSortMenuSelectedItemIndex);
-        outState.putInt("", mSortBy.ordinal());
         super.onSaveInstanceState(outState);
     }
 
@@ -137,6 +146,47 @@ public class MoviesActivity extends AppCompatActivity {
         DataManager.getInstance().getMovies(mSortBy, page, forced, new OnMoviesRequestCallback());
     }
 
+    private void loadFavoriteMovies() {
+        mMoviesViewModel.getFavoriteMovies().observe(this, new Observer<List<Movie>>() {
+            @Override
+            public void onChanged(@Nullable List<Movie> movieList) {
+                mLoadingView.setVisibility(View.GONE);
+
+                if (movieList != null) {
+                    if (movieList.size() > 0) {
+                        hideNoDataView();
+                    } else {
+                        showNoDataView();
+                    }
+
+                    mMoviesAdapter.setMoviesData(movieList, false);
+                    mMoviesAdapter.notifyDataSetChanged();
+                } else {
+                    showNoDataView();
+                    mMoviesAdapter.clearMoviesData();
+                    mMoviesAdapter.notifyDataSetChanged();
+                }
+            }
+        });
+    }
+
+    private void showNoDataView() {
+        if (mSortMenuSelectedItemIndex == 2) {
+            mNoDataMessage.setText(R.string.no_favorite_movies);
+            mRetryButton.setVisibility(View.GONE);
+        } else {
+            mNoDataMessage.setText(R.string.movies_error_message);
+            mRetryButton.setVisibility(View.VISIBLE);
+        }
+        mMoviesGrid.setVisibility(View.GONE);
+        mNoDataView.setVisibility(View.VISIBLE);
+    }
+
+    private void hideNoDataView() {
+        mMoviesGrid.setVisibility(View.VISIBLE);
+        mNoDataView.setVisibility(View.GONE);
+    }
+
     /**
      * Display the sort type popup menu.
      */
@@ -159,6 +209,10 @@ public class MoviesActivity extends AppCompatActivity {
                         mSortBy = DataManager.SortBy.TOP_RATED;
                         loadData(true, true);
                         return true;
+                    case R.id.favorite_movies:
+                        mSortMenuSelectedItemIndex = 2;
+                        loadFavoriteMovies();
+                        return true;
                     default:
                         return false;
                 }
@@ -167,6 +221,10 @@ public class MoviesActivity extends AppCompatActivity {
         // Set the checked state of the items
         popup.getMenu().getItem(mSortMenuSelectedItemIndex).setChecked(true);
         popup.show();
+    }
+
+    private boolean areFavoritesSelected() {
+        return mSortMenuSelectedItemIndex == 2;
     }
 
     /**
@@ -180,12 +238,13 @@ public class MoviesActivity extends AppCompatActivity {
             mLoadingView.setVisibility(View.GONE);
 
             if (movieList.size() > 0) {
-                mMoviesGrid.setVisibility(View.VISIBLE);
+                hideNoDataView();
                 // Set the received data on the Adapter and notify it
-                mMoviesAdapter.setMoviesData(movieList);
+                boolean shouldShowLoadingView = !DataManager.getInstance().isLastPage();
+                mMoviesAdapter.setMoviesData(movieList, shouldShowLoadingView);
                 mMoviesAdapter.notifyDataSetChanged();
             } else {
-                mErrorView.setVisibility(View.VISIBLE);
+                showNoDataView();
             }
         }
 
@@ -193,7 +252,7 @@ public class MoviesActivity extends AppCompatActivity {
         public void onMoviesFailure(Throwable throwable) {
             mIsLoading = false;
             mLoadingView.setVisibility(View.GONE);
-            mErrorView.setVisibility(View.VISIBLE);
+            showNoDataView();
         }
     }
 
@@ -206,6 +265,7 @@ public class MoviesActivity extends AppCompatActivity {
         public void onClick(View view, int movieId) {
             Intent detailsActivityIntent = new Intent(MoviesActivity.this, DetailsActivity.class);
             detailsActivityIntent.putExtra(Constants.Extra.MOVIE_ID, movieId);
+            detailsActivityIntent.putExtra(Constants.Extra.IS_FAVORITE_MOVIE, areFavoritesSelected());
             startActivity(detailsActivityIntent);
         }
     }
@@ -224,6 +284,7 @@ public class MoviesActivity extends AppCompatActivity {
             int firstVisibleItemPosition = mMoviesLayoutManager.findFirstVisibleItemPosition();
 
             boolean shouldLoadNextPage = !mIsLoading
+                    && mSortMenuSelectedItemIndex != 2 // Favorites are not paginated
                     && !DataManager.getInstance().isLastPage()
                     && visibleItemCount + firstVisibleItemPosition >= totalItemCount
                     && firstVisibleItemPosition >= 0;

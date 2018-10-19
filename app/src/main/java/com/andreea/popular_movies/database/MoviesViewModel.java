@@ -12,37 +12,29 @@ import java.util.List;
 /**
  * View Model that provides the data to the UI and handles configuration changes
  */
-public class FavoriteMoviesViewModel extends AndroidViewModel {
+public class MoviesViewModel extends AndroidViewModel {
 
-    private FavoriteMoviesRepository mRepository;
-    private LiveData<List<Movie>> mAllMovies;
+    private MoviesRepository mRepository;
+    private LiveData<List<Movie>> mFavoriteMovies;
 
-    public FavoriteMoviesViewModel(@NonNull Application application) {
+    public MoviesViewModel(@NonNull Application application) {
         super(application);
-        mRepository = new FavoriteMoviesRepository(application);
-        mAllMovies = mRepository.getAllMovies();
+        mRepository = new MoviesRepository(application);
+        mFavoriteMovies = mRepository.getFavoriteMovies();
     }
 
     /**
-     * Get all movies as an observable LiveData object
+     * Get favorite movies as an observable LiveData object
      */
-    public LiveData<List<Movie>> getAllMovies() {
-        return mAllMovies;
+    public LiveData<List<Movie>> getFavoriteMovies() {
+        return mFavoriteMovies;
     }
 
     /**
      * Get a movie from the Favorites database table based on its id
      */
-    public Movie getMovie(int id) {
-        List<Movie> movieList = mAllMovies.getValue();
-        if (movieList != null) {
-            for (Movie movie : movieList) {
-                if (movie.getId() == id) {
-                    return movie;
-                }
-            }
-        }
-        return null;
+    public LiveData<Movie> getMovie(Integer movieId, boolean isFavorite) {
+        return mRepository.getMovie(movieId, isFavorite);
     }
 
     /**
